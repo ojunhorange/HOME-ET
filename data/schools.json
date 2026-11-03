@@ -1,0 +1,15 @@
+{
+  "ku": {
+    "name": "고려대학교 (서울 성북구)",
+    "address": "서울특별시 성북구 안암로 145 고려대학교",
+    "lat": 37.5894,
+    "lng": 127.0323,
+    "defaultLivingRoundTripMin": 20,
+    "dongs": [
+      { "name": "안암동", "lat": 37.5862, "lng": 127.0290, "toSchool": "도보 10분", "oneWayMin": 10, "rent": 550000, "mgmt": 70000, "deposit": 10000000 },
+      { "name": "제기동", "lat": 37.5823, "lng": 127.0371, "toSchool": "도보 15분", "oneWayMin": 15, "rent": 500000, "mgmt": 60000, "deposit": 10000000 },
+      { "name": "보문동", "lat": 37.5852, "lng": 127.0197, "toSchool": "대중교통 20분", "oneWayMin": 20, "rent": 480000, "mgmt": 60000, "deposit": 10000000 },
+      { "name": "동선동", "lat": 37.5925, "lng": 127.0185, "toSchool": "대중교통 25분", "oneWayMin": 25, "rent": 450000, "mgmt": 60000, "deposit": 5000000 }
+    ]
+  }
+}

@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-brand: #2a2da6;
+  --color-brand-soft: #ecedfb;
+  --color-accent: #c2500f;
+  --color-accent-soft: #fdeee4;
+  --color-bg: #f4f5f7;
+  --color-ink: #1b1c22;
+  --color-muted: #6b7080;
+  --color-line: #e6e8ee;
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+@utility card {
+  background: white;
+  border: 1px solid var(--color-line);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+}
+
+@utility field {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  &:focus {
+    outline: 2px solid var(--color-brand);
+    outline-offset: -1px;
+  }
+}
+
+@utility btn {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  border: 1px solid var(--color-line);
+  background: white;
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+@utility btn-primary {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  background: var(--color-brand);
+  color: white;
+  &:hover {
+    opacity: 0.92;
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+input[type="range"] {
+  accent-color: var(--color-brand);
+  width: 100%;
 }

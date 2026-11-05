@@ -206,22 +206,28 @@ export function ReportScreen({
         </div>
       </Card>
 
-      {/* 마무리: 판정 다시 보기 + 저장 + 다음 단계. 데스크톱은 한 줄, 모바일은 결정 버튼만 하단 고정 바로 */}
-      <Card>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="min-w-0 space-y-1">
-            <p className="flex flex-wrap items-center gap-2 font-bold">
-              <Badge tone={tone}>{m.verdict}</Badge>
-              {m.passText}
-            </p>
-            <SaveStatus />
+      {/* 마무리: 저장 구역 | 결정 구역. 모바일은 결정 버튼만 하단 고정 바로 */}
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto]">
+        {/* 저장 구역 */}
+        <Card>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0 space-y-1">
+              <p className="flex flex-wrap items-center gap-2 font-bold">
+                <Badge tone={tone}>{m.verdict}</Badge>
+                {m.passText}
+              </p>
+              <SaveStatus />
+            </div>
+            <div className="flex gap-2 max-md:[&>*]:flex-1 md:shrink-0">
+              <SaveButtons />
+            </div>
           </div>
-          <div className="flex gap-2 max-md:[&>*]:flex-1 md:shrink-0">
-            <SaveButtons />
-            <div className="hidden gap-2 md:flex">{decisions("md")}</div>
-          </div>
-        </div>
-      </Card>
+        </Card>
+        {/* 결정 구역 (데스크톱 전용, 모바일은 하단 고정 바) */}
+        <Card className="hidden md:flex md:items-center">
+          <div className="flex gap-2">{decisions("md")}</div>
+        </Card>
+      </div>
 
       <Dialog
         open={stayOpen}

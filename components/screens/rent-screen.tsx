@@ -21,6 +21,17 @@ export function RentScreen({
 }) {
   const m = rentModel(state, name);
   const setCustom = (patch: Partial<Region>) => update({ custom: { ...state.custom, ...patch } });
+  const actions = (
+    <>
+      <Button variant="secondary" size="lg" onClick={onBack} className="max-md:w-24 max-md:flex-none!">
+        <span className="md:hidden">이전</span>
+        <span className="hidden md:inline">리포트로 돌아가기</span>
+      </Button>
+      <Button size="lg" onClick={onNext}>
+        계약 일정 등록
+      </Button>
+    </>
+  );
 
   return (
     <div>
@@ -69,18 +80,25 @@ export function RentScreen({
 
         </Card>
 
-        <Card className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
-          <CardTitle>{m.title}</CardTitle>
-          <div className="mt-3">
-            <BigNumber value={m.capText} unit={m.hasCap ? "/ 월 이하" : undefined} tone="primary" size="lg" />
-          </div>
-          <Callout className="mt-4">{m.message}</Callout>
-          {m.hasCap && (
-            <div className="mt-4">
-              <StatList rows={m.breakdown} />
+        {/* 오른쪽 열: 상한 카드 + 바로 아래 버튼 카드(따로 분리해 영역 구분) */}
+        <div className="space-y-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+          <Card>
+            <CardTitle>{m.title}</CardTitle>
+            <div className="mt-3">
+              <BigNumber value={m.capText} unit={m.hasCap ? "/ 월 이하" : undefined} tone="primary" size="lg" />
             </div>
-          )}
-        </Card>
+            <Callout className="mt-4">{m.message}</Callout>
+            {m.hasCap && (
+              <div className="mt-4">
+                <StatList rows={m.breakdown} />
+              </div>
+            )}
+          </Card>
+          {/* 데스크톱 전용. 모바일은 하단 고정 바 */}
+          <Card className="hidden md:block">
+            <div className="flex gap-2 [&>*]:flex-1">{actions}</div>
+          </Card>
+        </div>
 
         <Card className="lg:col-start-1 lg:row-start-2">
           {MAPS_KEY ? (
@@ -100,17 +118,7 @@ export function RentScreen({
         </Card>
       </div>
 
-      <div className="mt-5">
-        <ActionBar>
-          <Button variant="secondary" size="lg" onClick={onBack} className="max-md:w-24 max-md:flex-none!">
-            <span className="md:hidden">이전</span>
-            <span className="hidden md:inline">리포트로 돌아가기</span>
-          </Button>
-          <Button size="lg" onClick={onNext}>
-            계약 일정 등록
-          </Button>
-        </ActionBar>
-      </div>
+      <ActionBar desktopClassName="md:hidden">{actions}</ActionBar>
     </div>
   );
 }

@@ -174,11 +174,11 @@ export function HomeEtApp() {
         {state.step === 3 && ready && <RentScreen state={state} update={update} name={name} onBack={() => go(2)} onNext={() => go(4)} />}
         {state.step === 4 && ready && today && <DdayScreen state={state} update={update} today={today} onBack={() => go(3)} />}
       </main>
-      {/* 계약 D-day는 데스크톱에서 한 화면에 들어가게 푸터 아래 여백을 줄임 */}
-      <Footer className={cx(onInput && "max-md:hidden", state.step === 4 && "lg:pb-4")} />
+      {/* 계약 D-day는 데스크톱에서 한 화면에 들어가게 푸터 아래 여백을 줄임. 맞춤 월세 추천은 푸터 없이 한 화면에 */}
+      <Footer className={cx(onInput && "max-md:hidden", state.step === 3 && "hidden", state.step === 4 && "lg:pb-4")} />
       <MyReportsDialog />
-      {/* 오른쪽 아래 도우미 (등본 확인·특약 물어보기). 입력·분석 중 화면에서는 숨김 */}
-      {ready && state.step >= 2 && <Assistant deposit={state.leaseDeposit} />}
+      {/* 오른쪽 아래 도우미 (등본 확인·특약 물어보기). 계약 D-day 단계에서만 */}
+      {ready && state.step === 4 && <Assistant deposit={state.leaseDeposit} />}
     </ReportsProvider>
   );
 }

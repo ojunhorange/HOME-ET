@@ -1,0 +1,224 @@
+{
+ "고려대학교": {
+  "안암동": {
+   "mode": "도보",
+   "oneWayMin": 11,
+   "transitMode": "지하철",
+   "transitMin": 13,
+   "summary": "6호선"
+  },
+  "제기동": {
+   "mode": "도보",
+   "oneWayMin": 13,
+   "transitMode": "버스",
+   "transitMin": 19,
+   "summary": "130"
+  },
+  "종암동": {
+   "mode": "도보",
+   "oneWayMin": 15,
+   "transitMode": "버스",
+   "transitMin": 19,
+   "summary": "1112"
+  },
+  "청량리동": {
+   "mode": "도보",
+   "oneWayMin": 20,
+   "transitMode": "버스",
+   "transitMin": 21,
+   "summary": "273"
+  },
+  "동선동": {
+   "mode": "지하철",
+   "oneWayMin": 20,
+   "transitMode": "지하철",
+   "transitMin": 20,
+   "summary": "우이신설선 → 6호선"
+  }
+ },
+ "연세대학교": {
+  "대신동": {
+   "mode": "도보",
+   "oneWayMin": 9,
+   "transitMode": "버스",
+   "transitMin": 19,
+   "summary": "272"
+  },
+  "연희동": {
+   "mode": "도보",
+   "oneWayMin": 15,
+   "transitMode": "버스",
+   "transitMin": 21,
+   "summary": "서대문03"
+  },
+  "창천동": {
+   "mode": "도보",
+   "oneWayMin": 15,
+   "transitMode": "버스",
+   "transitMin": 19,
+   "summary": "서대문03"
+  },
+  "대현동": {
+   "mode": "도보",
+   "oneWayMin": 16,
+   "transitMode": "버스",
+   "transitMin": 24,
+   "summary": "750B"
+  },
+  "노고산동": {
+   "mode": "버스",
+   "oneWayMin": 21,
+   "transitMode": "버스",
+   "transitMin": 21,
+   "summary": "서대문03"
+  }
+ },
+ "서울대학교": {
+  "신림동": {
+   "mode": "도보",
+   "oneWayMin": 25,
+   "transitMode": "버스",
+   "transitMin": 31,
+   "summary": "5511"
+  },
+  "봉천동": {
+   "mode": "버스",
+   "oneWayMin": 27,
+   "transitMode": "버스",
+   "transitMin": 27,
+   "summary": "5513"
+  },
+  "남현동": {
+   "mode": "도보",
+   "oneWayMin": 40,
+   "transitMode": "버스",
+   "transitMin": 42,
+   "summary": "관악02-1"
+  },
+  "사당동": {
+   "mode": "지하철",
+   "oneWayMin": 41,
+   "transitMode": "지하철",
+   "transitMin": 41,
+   "summary": "7호선 → 750B"
+  },
+  "시흥동": {
+   "mode": "버스",
+   "oneWayMin": 51,
+   "transitMode": "버스",
+   "transitMin": 51,
+   "summary": "금천01 → 6515 → 5511"
+  }
+ },
+ "한양대학교": {
+  "사근동": {
+   "mode": "도보",
+   "oneWayMin": 5,
+   "transitMode": "버스",
+   "transitMin": 17,
+   "summary": "성동03-2"
+  },
+  "행당동": {
+   "mode": "도보",
+   "oneWayMin": 14,
+   "transitMode": "지하철",
+   "transitMin": 14,
+   "summary": "2호선"
+  },
+  "용답동": {
+   "mode": "도보",
+   "oneWayMin": 17,
+   "transitMode": "지하철",
+   "transitMin": 25,
+   "summary": "2호선 → 2호선"
+  },
+  "마장동": {
+   "mode": "지하철",
+   "oneWayMin": 18,
+   "transitMode": "지하철",
+   "transitMin": 18,
+   "summary": "2호선"
+  },
+  "하왕십리동": {
+   "mode": "지하철",
+   "oneWayMin": 11,
+   "transitMode": "지하철",
+   "transitMin": 11,
+   "summary": "2호선"
+  }
+ },
+ "건국대학교": {
+  "화양동": {
+   "mode": "도보",
+   "oneWayMin": 10,
+   "transitMode": "지하철",
+   "transitMin": 23,
+   "summary": "7호선"
+  },
+  "자양동": {
+   "mode": "도보",
+   "oneWayMin": 19,
+   "transitMode": "버스",
+   "transitMin": 21,
+   "summary": "광진05"
+  },
+  "능동": {
+   "mode": "도보",
+   "oneWayMin": 19,
+   "transitMode": "지하철",
+   "transitMin": 26,
+   "summary": "7호선"
+  },
+  "구의동": {
+   "mode": "도보",
+   "oneWayMin": 22,
+   "transitMode": "버스",
+   "transitMin": 26,
+   "summary": "광진03"
+  },
+  "군자동": {
+   "mode": "지하철",
+   "oneWayMin": 24,
+   "transitMode": "지하철",
+   "transitMin": 24,
+   "summary": "7호선"
+  }
+ },
+ "경희대학교": {
+  "회기동": {
+   "mode": "도보",
+   "oneWayMin": 8,
+   "transitMode": "버스",
+   "transitMin": 16,
+   "summary": "동대문01"
+  },
+  "이문동": {
+   "mode": "도보",
+   "oneWayMin": 18,
+   "transitMode": "버스",
+   "transitMin": 21,
+   "summary": "120"
+  },
+  "청량리동": {
+   "mode": "도보",
+   "oneWayMin": 18,
+   "transitMode": "버스",
+   "transitMin": 25,
+   "summary": "273"
+  },
+  "상월곡동": {
+   "mode": "도보",
+   "oneWayMin": 20,
+   "transitMode": "버스",
+   "transitMin": 28,
+   "summary": "120"
+  },
+  "휘경동": {
+   "mode": "도보",
+   "oneWayMin": 24,
+   "transitMode": "버스",
+   "transitMin": 27,
+   "summary": "동대문01"
+  }
+ }
+}

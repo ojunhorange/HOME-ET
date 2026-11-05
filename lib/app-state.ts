@@ -1,6 +1,6 @@
 import {
-  DEFAULT_COSTS, LEGACY_INITIAL_TOTALS, MIN_WAGE_2026, NEUTRAL, fromLegacyWeights, sanitizeAdjust,
-  type Adjust, type Commute, type LivingCosts,
+  DEFAULT_COSTS, LEGACY_INITIAL_TOTALS, MIN_WAGE_2026, NEUTRAL, effectiveRent, fromLegacyWeights, judge, sanitizeAdjust,
+  type Adjust, type Commute, type LivingCosts, type Place, type Verdict,
 } from "./calc";
 import { SCHOOLS, findSchool, type Region } from "./data";
 import type { WeightAnalysis } from "./weights";
@@ -90,6 +90,28 @@ export function selectedRegion(s: AppState): Region {
 
 /** 자취 지역에서 학교까지 버스·지하철이면 왕복 요금이 생김 (서울 기본요금 기준 가정) */
 export const regionFare = (r: Region) => (r.mode === "도보" ? 0 : 3_000);
+
+/** 지역 → 판정 입력. 직접 입력 지역은 환산 월세를 월세 + 보증금 이자로, 환승은 0으로 */
+export const placeOf = (s: AppState, r: Region): Place => ({
+  oneWayMin: r.oneWayMin,
+  transfers: r.transfers ?? 0,
+  roundTripFare: regionFare(r),
+  convRent: r.convRent ?? effectiveRent(r.rentMedian, s.costs.deposit, s.costs.annualRate),
+  rent: r.rentMedian,
+  mgmt: r.mgmtMedian,
+});
+
+export const judgeRegion = (s: AppState, r: Region): Verdict => judge(s.commute, s.costs, s.adj, placeOf(s, r));
+
+/**
+ * 학교 주변 동네 전체 판정. 자취지수는 동네와 무관해 하나, 한 곳이라도 통과하면 자취 추천.
+ * best = 여유(V − E)가 가장 큰 동네 (리포트의 1시간 비교·한 달 내역 기준)
+ */
+export function judgeSchool(s: AppState) {
+  const rows = findSchool(s.schoolId).regions.map((region) => ({ region, v: judgeRegion(s, region) }));
+  const best = rows.reduce((a, b) => (b.v.value - b.v.extraCost > a.v.value - a.v.extraCost ? b : a));
+  return { rows, best, index: best.v.index, recommended: rows.some((r) => r.v.ok) };
+}
 
 /** 학교를 바꾸면 그 학교 첫 동네 시세로 기본값을 맞춘다 */
 export function schoolPatch(s: AppState, id: string): Partial<AppState> {

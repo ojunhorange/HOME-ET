@@ -1,6 +1,5 @@
 /** 저장된 리포트: 클라이언트·서버 공용 타입과 순수 함수 */
-import type { AppState } from "./app-state";
-import { compute } from "./calc";
+import { judgeSchool, type AppState } from "./app-state";
 import { findSchool } from "./data";
 
 export const MAX_REPORTS = 3;
@@ -47,12 +46,12 @@ export function inputHash(s: AppState): string {
 
 /** 목록 표시용 요약. 서버가 저장할 때 다시 계산해서 넣음 (클라이언트 값을 믿지 않음) */
 export function buildSummary(s: AppState): ReportSummary | null {
-  const r = compute(s.commute, s.costs, s.adj);
+  const j = judgeSchool(s);
   const summary = {
-    index: Math.round(r.index * 10) / 10,
-    recommended: r.index >= 50,
-    myHour: Math.round(r.myHourValue),
-    buyBack: Math.round(r.buyBackPrice),
+    index: Math.round(j.index * 10) / 10,
+    recommended: j.recommended,
+    myHour: Math.round(j.best.v.myHourValue),
+    buyBack: Math.round(j.best.v.buyBackPrice),
   };
   return [summary.index, summary.myHour, summary.buyBack].every(Number.isFinite) ? summary : null;
 }

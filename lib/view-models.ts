@@ -3,14 +3,13 @@
  * 디자인을 바꿀 때 화면 JSX만 다시 쓰고, 숫자와 문구는 여기서 그대로 가져다 쓰면 됩니다.
  */
 import {
-  ADJ_MAX, ADJ_MIN, brokerageFee, compute, hours, man, sameAdjust, sanitizeAdjust, signed, won,
-  CONTRACT_MONTHS, type LivingCosts, type WeightKey,
+  ADJ_BASE, ADJ_MAX, ADJ_MIN, TIME_WEIGHT, hours, man, sameAdjust, sanitizeAdjust, signed, won, type Verdict, type WeightKey,
 } from "./calc";
 import { findSchool, type Region, type School } from "./data";
 import {
   TERMS, buildSteps, dLabel, googleCalendarUrl, md, parseDate, stepDateText, type Step,
 } from "./dday";
-import { regionFare, selectedRegion, type AppState } from "./app-state";
+import { judgeRegion, judgeSchool, selectedRegion, type AppState } from "./app-state";
 
 export const WEIGHT_LABELS: { key: WeightKey; label: string; hint: string }[] = [
   { key: "money", label: "돈", hint: "자취 비용을 얼마나 무겁게 느끼는지" },
@@ -22,61 +21,70 @@ const LEVELS: Record<number, string> = {
   [-3]: "거의 신경 안 씀", [-2]: "덜 중요", [-1]: "조금 덜 중요", 0: "보통", 1: "조금 중요", 2: "중요", 3: "가장 중요",
 };
 export const levelText = (a: number) => LEVELS[a] ?? "보통";
-const pts = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}점`;
+const pt = (v: number) => `${v.toFixed(1)}점`;
 
 export interface Line { label: string; value: string; total?: boolean }
 
+/** 한 달 기준 비교: 되찾는 것 (V) */
+const gainLines = (v: Verdict): Line[] => [
+  { label: "되찾는 통학 시간", value: hours(v.savedHours) },
+  { label: "시간 가치", value: man(v.timeValue) },
+  { label: `체력 가치 (피로 계수 ${v.fatigueHome.toFixed(2)} → ${v.fatiguePlace.toFixed(2)})`, value: man(v.bodyValue) },
+  { label: "절약 교통비", value: man(v.savedFare) },
+  { label: "합계", value: man(v.value), total: true },
+];
+/** 한 달 기준 비교: 더 드는 돈 (E) */
+const costLines = (v: Verdict, r: Region): Line[] => [
+  { label: `환산 월세 (${r.name} 중앙값)`, value: man(v.convRent) },
+  { label: "관리비", value: man(v.mgmt) },
+  { label: "추가 생활비", value: man(v.living) },
+  { label: "초기 비용 (중개보수 포함, 2년 분할)", value: man(v.initialMonthly) },
+  { label: "합계", value: man(v.extraCost), total: true },
+];
+
 // ── ② 리포트 ─────────────────────────────
 export function reportModel(state: AppState, name: string | null) {
-  const r = compute(state.commute, state.costs, state.adj);
-  const recommended = r.index >= 50;
+  const j = judgeSchool(state);
+  const { region: bestRegion, v: best } = j.best;
+  const recommended = j.recommended;
   const nextLabel = recommended ? "자취 준비하기" : "그래도 자취하기";
-  const myHour = Math.round(r.myHourValue);
-  const price = Math.round(r.buyBackPrice);
+  const myHour = Math.round(best.myHourValue);
+  const price = Math.round(best.buyBackPrice);
   const scale = Math.max(myHour, price, 1);
   const aiAdj = state.analysis ? sanitizeAdjust(state.analysis) : null;
-  const rawIndex = 50 + r.contrib.time + r.contrib.body + r.contrib.money;
+  const passed = j.rows.filter((r) => r.v.ok).length;
 
   return {
     title: name ? `${name} 님의 자취지수` : "내 자취지수",
-    index: r.index.toFixed(1),
-    indexPct: r.index,
+    index: j.index.toFixed(1),
+    indexPct: j.index,
     recommended,
     verdict: recommended ? "자취 추천" : "다시 생각해 보기",
-    hasSavedTime: r.savedHours > 0,
+    passText: `${findSchool(state.schoolId).name} 주변 ${j.rows.length}곳 중 ${passed}곳 통과`,
+    hasSavedTime: best.savedHours > 0,
     headline: {
       price: man(price),
       subject: name ? `지금 ${name} 님은` : "지금 내 가치관으로는",
       myHour: man(myHour),
+      region: bestRegion.name,
     },
     bars: [
       { label: "내가 매기는 1시간의 가치", value: won(myHour), pct: (myHour / scale) * 100, tone: "primary" as const },
-      { label: "자취로 1시간을 되사는 가격", value: won(price), pct: (price / scale) * 100, tone: "accent" as const },
+      { label: `${bestRegion.name} 자취로 1시간을 되사는 가격`, value: won(price), pct: (price / scale) * 100, tone: "accent" as const },
     ],
-    gains: [
-      { label: "통학 시간 (여유 시간 포함)", value: hours(r.savedHours) },
-      { label: "시간 가치", value: man(r.timeValue) },
-      { label: `피로 회복 시간 (계수 ${r.fatigue.toFixed(2)})`, value: hours(r.fatigueHours) },
-      { label: "체력 가치", value: man(r.bodyValue) },
-      { label: "합계", value: man(r.gainTotal), total: true },
-    ] satisfies Line[],
-    costs: [
-      { label: "월세 · 관리비", value: man(r.rentAndMgmt) },
-      { label: "추가 생활비", value: man(r.living) },
-      { label: "초기 비용 (중개보수 포함)", value: man(r.initialMonthly) },
-      { label: "보증금 기회비용 · 절약 교통비", value: man(r.depositCost - r.savedFare) },
-      { label: "합계", value: man(r.extraCost), total: true },
-    ] satisfies Line[],
+    basis: `${bestRegion.name} 기준 (가장 유리한 동네)`,
+    gains: gainLines(best),
+    costs: costLines(best, bestRegion),
     nextLabel,
-    /** 자취지수 = 50 + 항목별 점수 (선형식이라 그대로 더하면 돼요) */
-    indexLines: [
-      { label: "손익분기 기준", value: "50.0점" },
-      { label: `시간 가치 ×${r.multipliers.time.toFixed(2)}`, value: pts(r.contrib.time) },
-      { label: `체력 가치 ×${r.multipliers.body.toFixed(2)}`, value: pts(r.contrib.body) },
-      { label: `추가 비용 ×${r.multipliers.money.toFixed(2)}`, value: pts(r.contrib.money) },
-      { label: rawIndex < 0 || rawIndex > 100 ? "자취지수 (0~100으로 자름)" : "자취지수", value: `${r.index.toFixed(1)}점`, total: true },
+    /** 동네 점수(커트라인): 내 자취지수가 이 점수 이상이면 그 동네 추천 */
+    cutLines: [
+      ...j.rows.map(({ region, v }) => ({
+        label: `${v.ok ? "✓" : "✗"} ${region.name} · 환산 월세 ${man(v.convRent, 0)}`,
+        value: pt(v.cut),
+      })),
+      { label: "내 자취지수", value: pt(j.index), total: true },
     ] satisfies Line[],
-    brokerageNote: `지금 보증금·월세의 중개보수 법정 상한은 ${man(r.brokerage)}이에요(부가세 별도). 이사·가구가전과 함께 24개월로 나눠 초기 비용에 넣어요.`,
+    brokerageNote: `중개보수는 각 동네 월세 중앙값 기준 법정 상한으로 잡아요(${bestRegion.name} ${man(best.brokerage)}, 부가세 별도). 이사·가구가전과 함께 24개월로 나눠 초기 비용에 넣어요.`,
     adjust: WEIGHT_LABELS.map(({ key, label, hint }) => ({
       key,
       label,
@@ -90,20 +98,21 @@ export function reportModel(state: AppState, name: string | null) {
     aiAdj,
     isAiValue: !!aiAdj && sameAdjust(aiAdj, state.adj),
     stayMessage: `등교일이나 시간표가 바뀌면 다시 계산해 보세요. 마음이 바뀌면 언제든 “${nextLabel}”로 넘어갈 수 있어요.`,
+    params: { timeWeight: TIME_WEIGHT, step: Math.round((ADJ_BASE - 1) * 100) },
   };
 }
 
 // ── ③ 월세 추천 ─────────────────────────────
-function rentMessage(cap: number, region: Region) {
-  const median = man(region.rentMedian, 0);
-  if (!Number.isFinite(cap)) return "상한을 계산할 수 없어요. 리포트의 가치관 조정값을 다시 확인해 주세요.";
-  if (cap <= 0)
-    return `지금 가치관 기준으로는 ${region.name}에서 어떤 월세를 내도 통학보다 손해예요. 리포트에서 가치관을 다시 살펴보거나 통학을 이어가는 것도 방법이에요.`;
-  if (cap >= region.rentMedian * 1.5)
-    return `${region.name} 원룸 월세 중앙값(${median})보다 상한이 훨씬 높아요. 시세 안에서 넓게 고를 수 있어요.`;
-  if (cap >= region.rentMedian)
-    return `${region.name} 원룸 월세 중앙값(${median})이 상한 안에 들어와요. 이 지역에서 고르면 통학보다 손해가 아니에요.`;
-  return `${region.name} 원룸 월세 중앙값(${median})이 상한보다 높아요. 중앙값보다 싼 방을 찾거나 다른 지역도 같이 비교해 보세요.`;
+function rentMessage(v: Verdict, region: Region) {
+  const median = man(v.convRent, 0);
+  const score = `내 자취지수 ${pt(v.index)} ${v.ok ? "≥" : "<"} 동네 점수 ${pt(v.cut)}`;
+  if (v.rentCap <= 0)
+    return `지금 가치관 기준으로는 ${region.name}에서 어떤 월세를 내도 통학보다 손해예요(${score}). 리포트에서 가치관을 다시 살펴보거나 통학을 이어가는 것도 방법이에요.`;
+  if (v.rentCap >= v.convRent * 1.5)
+    return `${region.name} 환산 월세 중앙값(${median})보다 상한이 훨씬 높아요(${score}). 시세 안에서 넓게 고를 수 있어요.`;
+  if (v.ok)
+    return `${region.name} 환산 월세 중앙값(${median})이 상한 안에 들어와요(${score}). 이 지역에서 고르면 통학보다 손해가 아니에요.`;
+  return `${region.name} 환산 월세 중앙값(${median})이 상한보다 높아요(${score}). 중앙값보다 싼 방을 찾거나 다른 지역도 같이 비교해 보세요.`;
 }
 
 function mapUrl(school: School, region: Region) {
@@ -117,36 +126,31 @@ export function rentModel(state: AppState, name: string | null) {
   const school = findSchool(state.schoolId);
   const region = selectedRegion(state);
   const isCustom = region.id === "custom";
-  const costs: LivingCosts = { ...state.costs, rent: region.rentMedian, mgmt: region.mgmtMedian };
-  const livingMin = region.oneWayMin * 2;
-  const r = compute(state.commute, costs, state.adj, livingMin, regionFare(region));
-  const finite = Number.isFinite(r.rentCap);
-  const capWon = Math.max(0, r.rentCap);
-  const cap = man(capWon);
-  // 상한 월세에서의 중개보수로 내역을 다시 맞춤 (중개보수가 월세에 따라 달라짐)
-  const initialAtCap = (costs.initialTotal + brokerageFee(costs.deposit, capWon)) / CONTRACT_MONTHS;
+  const v = judgeRegion(state, region);
+  const cap = man(Math.max(0, v.rentCap));
 
   return {
     school,
     region,
     isCustom,
     regions: school.regions,
+    /** 지도 알약: 동네별 통과 여부 */
+    passed: Object.fromEntries(school.regions.map((rg) => [rg.id, judgeRegion(state, rg).ok])),
     title: name ? `${name} 님의 적정 월세 상한` : "나의 적정 월세 상한",
-    capText: finite ? cap : "제한 없음",
-    hasCap: finite,
-    message: rentMessage(r.rentCap, region),
+    capText: cap,
+    hasCap: true,
+    message: rentMessage(v, region),
     breakdown: [
-      { label: "내 시간·체력 가치 기준 지불 의향", value: man(r.willingness) },
-      { label: "− 관리비", value: man(costs.mgmt) },
-      { label: "− 추가 생활비", value: man(costs.living) },
-      { label: "− 초기 비용 (중개보수 포함, 2년 분할)", value: man(initialAtCap) },
-      { label: "− 보증금 기회비용", value: man(r.depositCost) },
-      { label: "+ 절약 교통비", value: man(r.savedFare) },
-      { label: "월세 상한", value: cap, total: true },
+      { label: "되찾는 시간·체력 가치", value: man(v.timeValue + v.bodyValue) },
+      { label: "+ 절약 교통비", value: man(v.savedFare) },
+      { label: "− 관리비", value: man(v.mgmt) },
+      { label: "− 추가 생활비", value: man(v.living) },
+      { label: "− 초기 비용 (중개보수 포함, 2년 분할)", value: man(v.initialMonthly) },
+      { label: "환산 월세 상한 (보증금 이자 포함)", value: cap, total: true },
     ] satisfies Line[],
     stats: [
       { label: "학교까지", value: `${region.mode === "도보" ? "도보" : isCustom ? "대중교통" : region.mode} ${region.oneWayMin}분`, note: isCustom ? undefined : region.mode === "도보" ? "(거리로 어림)" : "(Google 경로)" },
-      { label: "원룸 월세 중앙값", value: man(region.rentMedian, 0), note: isCustom ? undefined : "(실거래가 1년)" },
+      { label: "환산 월세 중앙값", value: man(v.convRent, 0), note: isCustom ? "(월세 + 보증금 이자)" : "(실거래가 1년)" },
       { label: "관리비 중앙값", value: man(region.mgmtMedian, 0), note: isCustom ? undefined : "(가정)" },
     ],
     map: { src: mapUrl(school, region), title: `${school.name} 주변 지도` },

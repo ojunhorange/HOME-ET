@@ -57,10 +57,14 @@ export function ReportScreen({
             </div>
             <div className="mt-5 space-y-3">
               <Meter value={m.indexPct} tone={tone} size="sm" marker />
-              <ScaleLabels items={["통학 유리", "50 = 손익분기", "자취 유리"]} />
+              <ScaleLabels items={["통학 유리", "또래 대학생 통학 백분위", "자취 유리"]} />
             </div>
             <div className="mt-5">
-              <StatList rows={m.indexLines} />
+              <SectionLabel>동네 커트라인 · {m.passText}</SectionLabel>
+              <div className="mt-2">
+                <StatList rows={m.cutLines} />
+              </div>
+              <FinePrint className="mt-2">내 자취지수가 동네 점수 이상이면 그 동네는 자취해도 손해가 아니에요.</FinePrint>
             </div>
           </Card>
         </div>
@@ -69,7 +73,7 @@ export function ReportScreen({
           {m.hasSavedTime ? (
             <div className="flex h-full flex-col gap-6">
               <p className="text-lg font-bold leading-snug sm:text-xl">
-                자취는 통학 1시간을 약 <Em tone="accent">{m.headline.price}</Em>에 되사는 셈이에요. {m.headline.subject} 1시간을 약{" "}
+                {m.headline.region} 자취는 통학 1시간을 약 <Em tone="accent">{m.headline.price}</Em>에 되사는 셈이에요. {m.headline.subject} 1시간을 약{" "}
                 <Em>{m.headline.myHour}</Em>어치로 여기고 있어요.
               </p>
               <div className="mt-auto">
@@ -140,7 +144,8 @@ export function ReportScreen({
           <CardTitle
             aside={
               <InfoTip label="가정값 계산 기준">
-                자취 후 왕복 20분, 한 달 = 주당 등교일 × 4.3일(학기 중 기준), 피로 계수 = 0.15 + 0.1 × 환승 횟수(최대 0.5)로 계산해요.
+                통학 1시간 = 최저시급 × {m.params.timeWeight}, 가치관 1칸 = 돈 대비 {m.params.step}%, 피로 계수 = 0.15 + 0.1 × 환승 횟수(최대 0.5), 한 달 = 주당 등교일 × 4.3일(학기 중 기준)로 계산해요. 자취 후 통학은 동네별 Google 경로, 월세는 동네별 실거래가 환산 월세 중앙값이에요.
+                <span className="mt-1.5 block">자취지수는 가치관을 반영한 체감 통학시간이 2010년 대학생 745명 설문에서 몇 백분위인지예요.</span>
                 <span className="mt-1.5 block">{m.brokerageNote}</span>
               </InfoTip>
             }
@@ -153,7 +158,7 @@ export function ReportScreen({
 
       {/* 3행: 한 달 기준 비교 */}
       <Card>
-        <CardTitle>한 달 기준 비교</CardTitle>
+        <CardTitle meta={m.basis}>한 달 기준 비교</CardTitle>
         <div className="mt-5 grid gap-6 sm:grid-cols-2 sm:gap-10">
           <div className="space-y-2">
             <SectionLabel tone="primary">자취하면 되찾는 것</SectionLabel>
@@ -214,11 +219,9 @@ export function ReportScreen({
 
 function Assumptions({ costs, onChange }: { costs: LivingCosts; onChange: (patch: Partial<LivingCosts>) => void }) {
   const fields: { label: string; key: keyof LivingCosts; step: number }[] = [
-    { label: "월세 (학교 주변 기본값)", key: "rent", step: 10_000 },
-    { label: "관리비", key: "mgmt", step: 10_000 },
     { label: "추가 생활비", key: "living", step: 10_000 },
     { label: "이사·가구가전 (중개보수 제외)", key: "initialTotal", step: 50_000 },
-    { label: "보증금", key: "deposit", step: 1_000_000 },
+    { label: "보증금 (중개보수 계산용)", key: "deposit", step: 1_000_000 },
   ];
   return (
     <div className="mt-5 grid grid-cols-2 gap-3">
@@ -227,16 +230,6 @@ function Assumptions({ costs, onChange }: { costs: LivingCosts; onChange: (patch
           <NumberInput id={`as-${f.key}`} size="sm" suffix="원" step={f.step} value={costs[f.key]} onChange={(v) => onChange({ [f.key]: v })} />
         </Field>
       ))}
-      <Field compact label="보증금 기회비용 연이율" htmlFor="as-rate">
-        <NumberInput
-          id="as-rate"
-          size="sm"
-          suffix="%"
-          step={0.1}
-          value={Math.round(costs.annualRate * 1000) / 10}
-          onChange={(v) => onChange({ annualRate: v / 100 })}
-        />
-      </Field>
     </div>
   );
 }

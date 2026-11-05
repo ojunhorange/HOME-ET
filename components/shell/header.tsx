@@ -109,7 +109,7 @@ export function Logo() {
 export function Footer({ className }: { className?: string }) {
   return (
     <footer className={cx("mx-auto w-full max-w-6xl px-4 pb-8 text-xs text-fg-muted sm:px-6", className)}>
-      HOME:ET · 팀 로컬에선 됐는데 · 월세 시세는 국토부 실거래가, 관리비는 가정값이며 산출식은 팀 확정 전 초안이에요. ·{" "}
+      HOME:ET · 팀 로컬에선 됐는데 · 월세 시세는 국토부 실거래가, 통학 백분위는 2010년 대학생 통학시간 설문(인크루트), 관리비·생활비는 가정값이에요. ·{" "}
       <a href="/privacy" className="underline-offset-2 hover:underline">
         개인정보처리방침
       </a>

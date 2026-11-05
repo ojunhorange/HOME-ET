@@ -14,6 +14,10 @@ export interface Region {
   mode: Mode;
   oneWayMin: number; // 학교까지 편도
   rentMedian: number; // 원룸 월세 중앙값(원)
+  /** 환산 월세 중앙값(원, 월세 + 보증금 × 3.5% ÷ 12, 거래별 환산의 중앙값). 직접 입력 지역은 없음 → 월세 + 보증금 이자로 계산 */
+  convRent?: number;
+  /** 학교까지 환승 수 (Google 경로 노선 수 − 1, 도보 0). 직접 입력 지역은 없음 → 0 */
+  transfers?: number;
   mgmtMedian: number; // 관리비 중앙값(원)
   lat: number;
   lng: number;
@@ -32,10 +36,11 @@ export interface School {
 const MGMT_EXAMPLE = 60_000;
 
 /** 캐시에 없으면(분석을 다시 돌리고 school-commute.mts 를 안 돌린 경우) 바로 알 수 있게 에러 */
-const commuteOf = (school: keyof typeof schoolDongs.schools, dong: string): Pick<Region, "mode" | "oneWayMin"> => {
-  const c = (schoolCommute as Record<string, Record<string, { mode: string; oneWayMin: number }>>)[school]?.[dong];
+const commuteOf = (school: keyof typeof schoolDongs.schools, dong: string): Pick<Region, "mode" | "oneWayMin" | "transfers"> => {
+  const c = (schoolCommute as Record<string, Record<string, { mode: string; oneWayMin: number; summary: string }>>)[school]?.[dong];
   if (!c) throw new Error(`data/school-commute.json에 ${school} ${dong}이 없어요. scripts/school-commute.mts를 실행하세요.`);
-  return { mode: c.mode as Mode, oneWayMin: c.oneWayMin };
+  // summary = "우이신설 → 6호선" 처럼 탄 노선을 → 로 이음
+  return { mode: c.mode as Mode, oneWayMin: c.oneWayMin, transfers: c.mode === "도보" ? 0 : c.summary.split("→").length - 1 };
 };
 
 type DongRow = (typeof schoolDongs.schools)[keyof typeof schoolDongs.schools][number];
@@ -45,6 +50,7 @@ const regionsOf = (school: keyof typeof schoolDongs.schools): Region[] =>
     name: d.dong,
     ...commuteOf(school, d.dong),
     rentMedian: Math.round(d.rent_median * 10_000),
+    convRent: Math.round(d.median * 10_000),
     mgmtMedian: MGMT_EXAMPLE,
     lat: d.lat,
     lng: d.lng,

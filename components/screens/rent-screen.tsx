@@ -24,7 +24,7 @@ export function RentScreen({
 
   return (
     <div>
-      <PageHeader title="어디서, 얼마까지 내도 될까?" sub="리포트와 같은 기준으로, 내 가치관에서 자취가 손해가 되지 않는 월세 상한을 계산했어요." />
+      <PageHeader title="어디서, 얼마까지 내도 될까?" sub="리포트와 같은 기준으로, 내 가치관에서 자취가 손해가 되지 않는 월세 상한(보증금 이자를 더한 환산 월세)을 동네마다 계산했어요." />
 
       {/* 모바일: 지역 고르기 → 월세 상한 → 지도 순. 데스크톱: 왼쪽 지역·지도, 오른쪽 상한 */}
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
@@ -88,6 +88,7 @@ export function RentScreen({
               school={m.school}
               regions={m.regions}
               selectedId={state.regionId}
+              passed={m.passed}
               onPick={(rg) => update({ regionId: rg.id, leaseRent: rg.rentMedian })}
             />
           ) : (
@@ -120,11 +121,12 @@ export function RentScreen({
  * AdvancedMarker는 Map ID가 있어야 보임 (지금은 Google 데모 ID)
  */
 function RegionMap({
-  school, regions, selectedId, onPick,
+  school, regions, selectedId, passed, onPick,
 }: {
   school: School;
   regions: Region[];
   selectedId: string;
+  passed: Record<string, boolean>;
   onPick: (r: Region) => void;
 }) {
   return (
@@ -142,19 +144,20 @@ function RegionMap({
             <Pin background="#e8894d" borderColor="#a6420a" glyphColor="#2a1405" />
           </AdvancedMarker>
           {regions.map((rg) => (
-            <AdvancedMarker key={rg.id} position={{ lat: rg.lat, lng: rg.lng }} title={`${rg.name} 선택 · 월세 중앙값 ${Math.round(rg.rentMedian / 10_000)}만 원`} onClick={() => onPick(rg)}>
+            <AdvancedMarker key={rg.id} position={{ lat: rg.lat, lng: rg.lng }} title={`${rg.name} 선택 · 환산 월세 중앙값 ${Math.round((rg.convRent ?? rg.rentMedian) / 10_000)}만 원 · ${passed[rg.id] ? "추천" : "상한 초과"}`} onClick={() => onPick(rg)}>
               <span
                 className={`block rounded-full px-3 py-1.5 text-xs font-bold shadow-md ${
                   rg.id === selectedId ? "bg-primary text-on-primary" : "bg-surface text-fg"
                 }`}
               >
-                {rg.name} <span className="font-normal opacity-80">{Math.round(rg.rentMedian / 10_000)}만</span>
+                {passed[rg.id] && "✓ "}
+                {rg.name} <span className="font-normal opacity-80">{Math.round((rg.convRent ?? rg.rentMedian) / 10_000)}만</span>
               </span>
             </AdvancedMarker>
           ))}
         </GoogleMap>
       </div>
-      <FinePrint className="mt-1.5 text-right text-[11px]">지도 © Google · 숫자는 월세 중앙값 · 동네 이름을 눌러도 고를 수 있어요</FinePrint>
+      <FinePrint className="mt-1.5 text-right text-[11px]">지도 © Google · 숫자는 환산 월세 중앙값 · ✓ = 내 상한 안 · 동네 이름을 눌러도 고를 수 있어요</FinePrint>
     </div>
   );
 }

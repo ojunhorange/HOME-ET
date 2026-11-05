@@ -9,7 +9,7 @@ import {
   ActionBar, Badge, BigNumber, Button, Card, CardTitle, Dialog, Em, ColumnBars, FinePrint, InfoTip,
   Meter, NumberInput, Panel, ScaleLabels, SectionLabel, Slider, StatList, useIsDesktop,
 } from "@/components/ui";
-import { SaveReportPanel } from "@/components/reports/report-ui";
+import { SaveButtons, SaveStatus } from "@/components/reports/report-ui";
 
 export function ReportScreen({
   state, update, name, onStay, onGo,
@@ -29,6 +29,23 @@ export function ReportScreen({
   // 모바일: 점수 카드가 통째로 지나가면 / 데스크톱: 카드가 옆 카드 높이만큼 늘어나 늦게 지나가므로 큰 숫자가 지나가면
   const desktop = useIsDesktop();
   const pinned = useScrolledPast(desktop ? numberRef : scoreRef);
+  const decisions = (size: "md" | "lg") => (
+    <>
+      <Button
+        variant="secondary"
+        size={size}
+        onClick={() => {
+          onStay();
+          setStayOpen(true);
+        }}
+      >
+        통학 유지하기
+      </Button>
+      <Button size={size} onClick={onGo}>
+        {m.nextLabel}
+      </Button>
+    </>
+  );
 
   return (
     <div className="space-y-5">
@@ -189,7 +206,22 @@ export function ReportScreen({
         </div>
       </Card>
 
-      <SaveReportPanel />
+      {/* 마무리: 판정 다시 보기 + 저장 + 다음 단계. 데스크톱은 한 줄, 모바일은 결정 버튼만 하단 고정 바로 */}
+      <Card>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="flex flex-wrap items-center gap-2 font-bold">
+              <Badge tone={tone}>{m.verdict}</Badge>
+              {m.passText}
+            </p>
+            <SaveStatus />
+          </div>
+          <div className="flex gap-2 max-md:[&>*]:flex-1 md:shrink-0">
+            <SaveButtons />
+            <div className="hidden gap-2 md:flex">{decisions("md")}</div>
+          </div>
+        </div>
+      </Card>
 
       <Dialog
         open={stayOpen}
@@ -216,21 +248,7 @@ export function ReportScreen({
         {m.stayMessage}
       </Dialog>
 
-      <ActionBar>
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={() => {
-            onStay();
-            setStayOpen(true);
-          }}
-        >
-          통학 유지하기
-        </Button>
-        <Button size="lg" onClick={onGo}>
-          {m.nextLabel}
-        </Button>
-      </ActionBar>
+      <ActionBar desktopClassName="md:hidden">{decisions("lg")}</ActionBar>
     </div>
   );
 }

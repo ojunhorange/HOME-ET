@@ -1,8 +1,8 @@
 "use client";
 
-/** 리포트 저장 UI: 리포트 화면의 저장 카드 + 시작 화면의 '기존 리포트 보기' + 목록 Dialog */
+/** 리포트 저장 UI: 리포트 화면의 저장 상태·버튼 + 시작 화면의 '기존 리포트 보기' + 목록 Dialog */
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, CardTitle, Dialog } from "@/components/ui";
+import { Badge, Button, Dialog } from "@/components/ui";
 import { cx, focusRing } from "@/components/ui/styles";
 import { MAX_REPORTS, type SavedReportMeta } from "@/lib/saved-reports";
 import { useReports } from "./reports-context";
@@ -10,61 +10,64 @@ import { useReports } from "./reports-context";
 const when = (iso: string) =>
   new Date(iso).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
-// ── 리포트 화면: 저장 카드 ─────────────────────────────
+// ── 리포트 화면: 저장 상태·버튼 ─────────────────────────────
 
-export function SaveReportPanel() {
+// 리포트 화면 맨 아래 마무리 카드에 들어가는 저장 부분: 상태 한 줄 + 버튼 (저장 기능이 꺼져 있으면 둘 다 없음)
+
+export function SaveStatus() {
   const r = useReports();
   if (!r.enabled) return null;
-  const count = r.list?.length ?? 0;
-
+  const count = r.signedIn && r.list ? ` · ${r.list.length}/${MAX_REPORTS}` : "";
   return (
-    <Card>
-      <CardTitle aside={r.signedIn && r.list && <Badge tone="muted">{count}/{MAX_REPORTS}</Badge>}>리포트 저장</CardTitle>
-      {!r.signedIn ? (
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-fg-sub">로그인하면 리포트를 {MAX_REPORTS}개까지 저장하고 나중에 다시 열어 볼 수 있어요.</p>
-          <Button onClick={() => r.signIn()} disabled={r.signingIn} aria-busy={r.signingIn}>
-            {r.signingIn ? "로그인 화면으로 이동 중…" : "Google로 로그인하고 저장"}
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-3 space-y-3">
-          <p className="text-sm text-fg-sub">
-            {r.isSaved
-              ? "지금 보고 있는 리포트가 저장돼 있어요."
-              : r.editing
-                ? <>저장한 리포트 <b className="text-fg">{r.editing.title}</b> 내용을 고치고 있어요.</>
-                : "가치관이나 가정값을 바꿔 가며 비교해 보고, 마음에 드는 결과를 저장해 두세요."}
-          </p>
-          {/* 버튼 하나면 전체 너비, 두 개(덮어쓰기·새로 저장)면 반씩 나눠 채움 */}
-          <div className="flex gap-2 [&>*]:flex-1">
-            {r.isSaved ? (
-              <Button variant="secondary" disabled>
-                저장됨 ✓
-              </Button>
-            ) : r.editing ? (
-              <>
-                <Button onClick={r.overwrite} disabled={r.busy}>
-                  덮어쓰기
-                </Button>
-                <Button variant="secondary" onClick={r.saveNew} disabled={r.busy || !r.list}>
-                  새로 저장
-                </Button>
-              </>
-            ) : (
-              <Button onClick={r.saveNew} disabled={r.busy || !r.list}>
-                {r.busy ? "저장 중…" : "리포트 저장"}
-              </Button>
-            )}
-          </div>
-          {r.error && (
-            <p role="alert" className="text-sm font-semibold text-accent">
-              {r.error}
-            </p>
-          )}
-        </div>
+    <>
+      <p className="text-sm text-fg-sub">
+        {!r.signedIn
+          ? `로그인하면 리포트를 ${MAX_REPORTS}개까지 저장할 수 있어요.`
+          : r.isSaved
+            ? `지금 리포트가 저장돼 있어요${count}`
+            : r.editing
+              ? <>저장한 리포트 <b className="text-fg">{r.editing.title}</b>을 고치는 중이에요{count}</>
+              : `마음에 드는 결과는 저장해 두세요${count}`}
+      </p>
+      {r.error && (
+        <p role="alert" className="text-sm font-semibold text-accent">
+          {r.error}
+        </p>
       )}
-    </Card>
+    </>
+  );
+}
+
+export function SaveButtons() {
+  const r = useReports();
+  if (!r.enabled) return null;
+  if (!r.signedIn)
+    return (
+      <Button variant="secondary" onClick={() => r.signIn()} disabled={r.signingIn} aria-busy={r.signingIn}>
+        {r.signingIn ? "이동 중…" : "로그인하고 저장"}
+      </Button>
+    );
+  if (r.isSaved)
+    return (
+      <Button variant="secondary" disabled>
+        저장됨 ✓
+      </Button>
+    );
+  if (r.editing)
+    return (
+      <>
+        <Button variant="secondary" onClick={r.overwrite} disabled={r.busy}>
+          덮어쓰기
+        </Button>
+        <Button variant="ghost" onClick={r.saveNew} disabled={r.busy || !r.list}>
+          새로 저장
+        </Button>
+      </>
+    );
+  return (
+    <Button variant="secondary" onClick={r.saveNew} disabled={r.busy || !r.list}>
+      {r.busy ? "저장 중…" : "리포트 저장"}
+    </Button>
   );
 }
 

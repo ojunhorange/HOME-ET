@@ -3,7 +3,7 @@
  * 디자인을 바꿀 때 화면 JSX만 다시 쓰고, 숫자와 문구는 여기서 그대로 가져다 쓰면 됩니다.
  */
 import {
-  ADJ_BASE, ADJ_MAX, ADJ_MIN, TIME_WEIGHT, hours, man, sameAdjust, sanitizeAdjust, signed, won, type Verdict, type WeightKey,
+  ADJ_MAX, ADJ_MIN, man, sameAdjust, sanitizeAdjust, signed, won, type Verdict, type WeightKey,
 } from "./calc";
 import { findSchool, type Region, type School } from "./data";
 import {
@@ -27,10 +27,11 @@ export interface Line { label: string; value: string; total?: boolean }
 
 /** 한 달 기준 비교: 되찾는 것 (V) */
 const gainLines = (v: Verdict): Line[] => [
-  { label: "되찾는 통학 시간", value: hours(v.savedHours) },
   { label: "시간 가치", value: man(v.timeValue) },
-  { label: `체력 가치 (피로 계수 ${v.fatigueHome.toFixed(2)} → ${v.fatiguePlace.toFixed(2)})`, value: man(v.bodyValue) },
+  { label: "체력 가치", value: man(v.bodyValue) },
   { label: "절약 교통비", value: man(v.savedFare) },
+  // 돈으로 셀 수 없는 몫이라 합계에 넣지 않음. 옆 "더 드는 돈"과 줄 수를 맞추는 자리이기도 함
+  { label: "마음의 여유", value: "" },
   { label: "합계", value: man(v.value), total: true },
 ];
 /** 한 달 기준 비교: 더 드는 돈 (E) */
@@ -61,30 +62,30 @@ export function reportModel(state: AppState, name: string | null) {
     recommended,
     verdict: recommended ? "자취 추천" : "다시 생각해 보기",
     passText: `${findSchool(state.schoolId).name} 주변 ${j.rows.length}곳 중 ${passed}곳 통과`,
+    /** 기준선 = 커트라인이 가장 낮은 동네 (여유 V − E 가 가장 큰 동네와 같음: V − E ∝ t̃ − t*) */
+    cutoff: { pct: best.cut, text: best.cut.toFixed(1) },
     hasSavedTime: best.savedHours > 0,
-    headline: {
-      price: man(price),
-      subject: name ? `지금 ${name} 님은` : "지금 내 가치관으로는",
-      myHour: man(myHour),
-      region: bestRegion.name,
+    /** 메인 문구: 1시간 차이 × 되찾는 시간 = 한 달 차이 (V − E) */
+    summary: {
+      hours: `${Math.round(best.savedHours)}시간`,
+      perHour: man(Math.abs(myHour - price)),
+      perMonth: man(Math.abs(best.value - best.extraCost), 0),
     },
     bars: [
-      { label: "내가 매기는 1시간의 가치", value: won(myHour), pct: (myHour / scale) * 100, tone: "primary" as const },
-      { label: `${bestRegion.name} 자취로 1시간을 되사는 가격`, value: won(price), pct: (price / scale) * 100, tone: "accent" as const },
+      { label: "내 1시간 가치", value: won(myHour), pct: (myHour / scale) * 100, tone: "primary" as const },
+      { label: "자취 1시간 가격", value: won(price), pct: (price / scale) * 100, tone: "accent" as const },
     ],
-    basis: `${bestRegion.name} 기준 (가장 유리한 동네)`,
+    basis: `${bestRegion.name} 기준`,
     gains: gainLines(best),
     costs: costLines(best, bestRegion),
     nextLabel,
     /** 동네 점수(커트라인): 내 자취지수가 이 점수 이상이면 그 동네 추천 */
     cutLines: [
-      ...j.rows.map(({ region, v }) => ({
+      ...[...j.rows].sort((a, b) => a.v.cut - b.v.cut).map(({ region, v }) => ({
         label: `${v.ok ? "✓" : "✗"} ${region.name} · 환산 월세 ${man(v.convRent, 0)}`,
         value: pt(v.cut),
       })),
-      { label: "내 자취지수", value: pt(j.index), total: true },
     ] satisfies Line[],
-    brokerageNote: `중개보수는 각 동네 월세 중앙값 기준 법정 상한으로 잡아요(${bestRegion.name} ${man(best.brokerage)}, 부가세 별도). 이사·가구가전과 함께 24개월로 나눠 초기 비용에 넣어요.`,
     adjust: WEIGHT_LABELS.map(({ key, label, hint }) => ({
       key,
       label,
@@ -98,7 +99,6 @@ export function reportModel(state: AppState, name: string | null) {
     aiAdj,
     isAiValue: !!aiAdj && sameAdjust(aiAdj, state.adj),
     stayMessage: `등교일이나 시간표가 바뀌면 다시 계산해 보세요. 마음이 바뀌면 언제든 “${nextLabel}”로 넘어갈 수 있어요.`,
-    params: { timeWeight: TIME_WEIGHT, step: Math.round((ADJ_BASE - 1) * 100) },
   };
 }
 
@@ -151,7 +151,7 @@ export function rentModel(state: AppState, name: string | null) {
     stats: [
       { label: "학교까지", value: `${region.mode === "도보" ? "도보" : isCustom ? "대중교통" : region.mode} ${region.oneWayMin}분`, note: isCustom ? undefined : region.mode === "도보" ? "(거리로 어림)" : "(Google 경로)" },
       { label: "환산 월세 중앙값", value: man(v.convRent, 0), note: isCustom ? "(월세 + 보증금 이자)" : "(실거래가 1년)" },
-      { label: "관리비 중앙값", value: man(region.mgmtMedian, 0), note: isCustom ? undefined : "(가정)" },
+      { label: "관리비", value: man(v.mgmt, 0), note: isCustom ? undefined : "(가정)" },
     ],
     map: { src: mapUrl(school, region), title: `${school.name} 주변 지도` },
   };

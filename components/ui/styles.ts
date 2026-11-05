@@ -88,7 +88,7 @@ export const styles = {
     track: "relative rounded-full bg-track",
     fill: { primary: "bg-primary", accent: "bg-accent-fill" },
     size: { sm: "h-2.5", md: "h-3" },
-    marker: "absolute -top-1.5 left-1/2 h-5.5 w-0.5 -translate-x-1/2 bg-fg",
+    marker: "absolute -top-1.5 h-5.5 w-0.5 -translate-x-1/2 bg-fg",
   },
 
   callout: {

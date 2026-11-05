@@ -98,7 +98,8 @@ export const placeOf = (s: AppState, r: Region): Place => ({
   roundTripFare: regionFare(r),
   convRent: r.convRent ?? effectiveRent(r.rentMedian, s.costs.deposit, s.costs.annualRate),
   rent: r.rentMedian,
-  mgmt: r.mgmtMedian,
+  // 관리비는 실거래가에 없어서 리포트 가정값(모든 동네 공통). 직접 입력 지역만 그 지역 값
+  mgmt: r.id === "custom" ? r.mgmtMedian : s.costs.mgmt,
 });
 
 export const judgeRegion = (s: AppState, r: Region): Verdict => judge(s.commute, s.costs, s.adj, placeOf(s, r));
@@ -120,7 +121,7 @@ export function schoolPatch(s: AppState, id: string): Partial<AppState> {
   return {
     schoolId: school.id,
     regionId: r0.id,
-    costs: { ...s.costs, rent: r0.rentMedian, mgmt: r0.mgmtMedian },
+    costs: { ...s.costs, rent: r0.rentMedian },
     custom: { ...s.custom, lat: school.lat, lng: school.lng },
     leaseRent: r0.rentMedian,
   };

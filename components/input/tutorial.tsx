@@ -32,7 +32,7 @@ const SLIDES: { title: string; body: string; art: ReactNode }[] = [
   },
   {
     title: "자취지수로 비교해요",
-    body: "통학으로 잃는 시간과 체력을 돈으로 바꿔 0~100점으로 보여 드려요. 50점보다 높으면 자취가 이득이에요.",
+    body: "통학으로 잃는 시간과 체력을 또래 대학생 통학 순위로 0~100점에 매겨요. 학교 주변 동네의 커트라인보다 높으면 그 동네에서는 자취가 이득이에요.",
     art: <ScoreArt />,
   },
   {
@@ -156,11 +156,11 @@ function ScoreArt() {
         <span className="text-sm text-fg-muted">/ 100</span>
       </p>
       <div className="mt-3">
-        <Meter value={68} marker size="sm" />
+        <Meter value={68} marker={60} size="sm" />
       </div>
       <div className="mt-2 flex justify-between text-[11px] text-fg-muted">
         <span>통학이 나아요</span>
-        <span>50</span>
+        <span>커트라인 60</span>
         <span>자취가 이득</span>
       </div>
     </div>

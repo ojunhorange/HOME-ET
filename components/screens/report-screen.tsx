@@ -6,8 +6,8 @@ import type { LivingCosts } from "@/lib/calc";
 import { reportModel } from "@/lib/view-models";
 import { cx } from "@/components/ui/styles";
 import {
-  ActionBar, Badge, BigNumber, Button, Card, CardTitle, Dialog, Em, ColumnBars, Field, FinePrint, InfoTip,
-  Meter, NumberInput, ScaleLabels, SectionLabel, Slider, StatList, useIsDesktop,
+  ActionBar, Badge, BigNumber, Button, Card, CardTitle, Dialog, Em, ColumnBars, FinePrint, InfoTip,
+  Meter, NumberInput, Panel, ScaleLabels, SectionLabel, Slider, StatList, useIsDesktop,
 } from "@/components/ui";
 import { SaveReportPanel } from "@/components/reports/report-ui";
 
@@ -43,6 +43,7 @@ export function ReportScreen({
         <div className="flex items-center gap-2 rounded-full border border-glass-border bg-glass-bar py-1.5 pl-4 pr-1.5 text-sm shadow-glass backdrop-glass">
           <span className="text-fg-sub">자취지수</span>
           <b className={cx("text-base tabular-nums", tone === "primary" ? "text-primary" : "text-accent")}>{m.index}</b>
+          <span className="text-base font-semibold tabular-nums text-fg-sub">/ {m.cutoff.text}</span>
           <Badge tone={tone}>{m.verdict}</Badge>
         </div>
       </div>
@@ -56,15 +57,14 @@ export function ReportScreen({
               <BigNumber value={m.index} unit="/ 100" />
             </div>
             <div className="mt-5 space-y-3">
-              <Meter value={m.indexPct} tone={tone} size="sm" marker />
-              <ScaleLabels items={["통학 유리", "또래 대학생 통학 백분위", "자취 유리"]} />
+              <Meter value={m.indexPct} tone={tone} size="sm" marker={m.cutoff.pct} />
+              <ScaleLabels items={["통학 유리", "자취 유리"]} />
             </div>
             <div className="mt-5">
               <SectionLabel>동네 커트라인 · {m.passText}</SectionLabel>
               <div className="mt-2">
                 <StatList rows={m.cutLines} />
               </div>
-              <FinePrint className="mt-2">내 자취지수가 동네 점수 이상이면 그 동네는 자취해도 손해가 아니에요.</FinePrint>
             </div>
           </Card>
         </div>
@@ -73,8 +73,21 @@ export function ReportScreen({
           {m.hasSavedTime ? (
             <div className="flex h-full flex-col gap-6">
               <p className="text-lg font-bold leading-snug sm:text-xl">
-                {m.headline.region} 자취는 통학 1시간을 약 <Em tone="accent">{m.headline.price}</Em>에 되사는 셈이에요. {m.headline.subject} 1시간을 약{" "}
-                <Em>{m.headline.myHour}</Em>어치로 여기고 있어요.
+                {m.recommended ? (
+                  <>
+                    <span className="block">한 달에 통학 <Em>{m.summary.hours}</Em>이 돌아와요.</span>
+                    <span className="block">
+                      내 기준으로는 시간당 <Em>{m.summary.perHour}</Em>, 매달 <Em>{m.summary.perMonth}</Em>어치 이득이에요.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="block">1시간마다 <Em tone="accent">{m.summary.perHour}</Em>씩 비싸게 사는 거예요.</span>
+                    <span className="block">
+                      한 달이면 약 <Em tone="accent">{m.summary.perMonth}</Em>을 더 내는 셈이에요.
+                    </span>
+                  </>
+                )}
               </p>
               <div className="mt-auto">
                 <ColumnBars items={m.bars} />
@@ -140,13 +153,18 @@ export function ReportScreen({
           </div>
         </Card>
 
-        <Card>
+        {/* 옆 가치관 카드 높이만큼 늘어나고, 4칸이 남은 높이를 나눠 채움 */}
+        <Card className="flex flex-col">
           <CardTitle
             aside={
-              <InfoTip label="가정값 계산 기준">
-                통학 1시간 = 최저시급 × {m.params.timeWeight}, 가치관 1칸 = 돈 대비 {m.params.step}%, 피로 계수 = 0.15 + 0.1 × 환승 횟수(최대 0.5), 한 달 = 주당 등교일 × 4.3일(학기 중 기준)로 계산해요. 자취 후 통학은 동네별 Google 경로, 월세는 동네별 실거래가 환산 월세 중앙값이에요.
-                <span className="mt-1.5 block">자취지수는 가치관을 반영한 체감 통학시간이 2010년 대학생 745명 설문에서 몇 백분위인지예요.</span>
-                <span className="mt-1.5 block">{m.brokerageNote}</span>
+              <InfoTip label="가정값 항목 설명">
+                <span className="block space-y-1.5">
+                  {ASSUMPTIONS.map((a) => (
+                    <span key={a.key} className="block">
+                      <b className="text-fg">{a.label}</b> · {a.hint}
+                    </span>
+                  ))}
+                </span>
               </InfoTip>
             }
           >
@@ -217,18 +235,31 @@ export function ReportScreen({
   );
 }
 
+const ASSUMPTIONS: { label: string; hint: string; key: keyof LivingCosts; step: number }[] = [
+  { label: "보증금", hint: "중개보수 계산용", key: "deposit", step: 1_000_000 },
+  { label: "관리비", hint: "매달 내는 관리비, 모든 동네에 같은 값을 적용", key: "mgmt", step: 10_000 },
+  { label: "추가 생활비", hint: "월세 이외의 식비 또는 생활비 등", key: "living", step: 10_000 },
+  { label: "이사·가구가전", hint: "이사 비용 및 초기 가구 구매 비용", key: "initialTotal", step: 50_000 },
+];
+
 function Assumptions({ costs, onChange }: { costs: LivingCosts; onChange: (patch: Partial<LivingCosts>) => void }) {
-  const fields: { label: string; key: keyof LivingCosts; step: number }[] = [
-    { label: "추가 생활비", key: "living", step: 10_000 },
-    { label: "이사·가구가전 (중개보수 제외)", key: "initialTotal", step: 50_000 },
-    { label: "보증금 (중개보수 계산용)", key: "deposit", step: 1_000_000 },
-  ];
   return (
-    <div className="mt-5 grid grid-cols-2 gap-3">
-      {fields.map((f) => (
-        <Field key={f.key} compact label={f.label} htmlFor={`as-${f.key}`}>
-          <NumberInput id={`as-${f.key}`} size="sm" suffix="원" step={f.step} value={costs[f.key]} onChange={(v) => onChange({ [f.key]: v })} />
-        </Field>
+    <div className="mt-5 grid flex-1 auto-rows-fr grid-cols-2 gap-3">
+      {ASSUMPTIONS.map((f) => (
+        // 칸이 늘어나도 이름은 위, 입력칸은 아래에 붙음
+        <Panel key={f.key} className="flex min-w-0 flex-col justify-between gap-3">
+          <label htmlFor={`as-${f.key}`} className="text-sm font-semibold text-fg">
+            {f.label}
+          </label>
+          <NumberInput
+            id={`as-${f.key}`}
+            tone="inset"
+            suffix="원"
+            step={f.step}
+            value={costs[f.key]}
+            onChange={(v) => onChange({ [f.key]: v })}
+          />
+        </Panel>
       ))}
     </div>
   );

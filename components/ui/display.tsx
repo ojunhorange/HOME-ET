@@ -27,15 +27,15 @@ export function BigNumber({
   );
 }
 
-/** 가로 막대 (marker = 50% 위치 기준선) */
+/** 가로 막대 (marker = 기준선 위치, 0~100) */
 export function Meter({
   value, tone = "primary", size = "md", marker,
-}: { value: number; tone?: keyof typeof styles.meter.fill; size?: keyof typeof styles.meter.size; marker?: boolean }) {
+}: { value: number; tone?: keyof typeof styles.meter.fill; size?: keyof typeof styles.meter.size; marker?: number }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
     <div className={cx(styles.meter.track, styles.meter.size[size])} aria-hidden>
       <div className={cx("h-full rounded-full transition-all", styles.meter.fill[tone])} style={{ width: `${Math.max(2, pct)}%` }} />
-      {marker && <div className={styles.meter.marker} />}
+      {marker !== undefined && <div className={styles.meter.marker} style={{ left: `${Math.max(0, Math.min(100, marker))}%` }} />}
     </div>
   );
 }

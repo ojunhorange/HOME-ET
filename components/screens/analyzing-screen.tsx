@@ -34,7 +34,7 @@ export function AnalyzingScreen({ state, name }: { state: AppState; name: string
 
         <StageRow state="active" no={2} title="생활 목표 분석">
           <div className="h-2 overflow-hidden rounded-full bg-track">
-            <div className="h-full w-[55%] rounded-full bg-accent-fill motion-safe:animate-flow" />
+            <div className="h-full w-full origin-left rounded-full bg-accent-fill motion-safe:animate-flow motion-reduce:scale-x-55" />
           </div>
           {goal && (
             <p className="rounded-panel border border-glass-border bg-surface-subtle px-4 py-3.5 text-sm leading-relaxed text-fg-sub">“{goal}”</p>
@@ -55,7 +55,7 @@ function StageRow({ state, no, title, children }: { state: keyof typeof STATUS; 
       className={cx(
         "flex items-start gap-4 rounded-[18px] p-4 md:p-[18px]",
         state === "done" && "border border-glass-border bg-surface-subtle",
-        state === "active" && "border border-accent-fill/40 bg-surface/85 shadow-[0_8px_22px_rgb(232_137_77/0.12)]",
+        state === "active" && "border border-accent-fill/40 bg-surface/85 shadow-step",
         state === "wait" && "opacity-75",
       )}
     >

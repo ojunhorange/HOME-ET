@@ -45,7 +45,7 @@ export function Header({
   }, []);
 
   return (
-    <header ref={ref} className={cx("sticky top-0 z-20 border-b border-glass-border shadow-[0_8px_30px_rgb(20_30_55/0.06)]", glassBar, className)}>
+    <header ref={ref} className={cx("sticky top-0 z-20 border-b border-glass-border shadow-bar", glassBar, className)}>
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
         <button type="button" onClick={onHome} className={cx("shrink-0 rounded-md", focusRing)} aria-label="HOME:ET 처음 화면으로">
           <Logo />
@@ -109,8 +109,12 @@ export function Logo() {
 export function Footer({ className }: { className?: string }) {
   return (
     <footer className={cx("mx-auto w-full max-w-6xl px-4 pb-8 text-xs text-fg-muted sm:px-6", className)}>
-      HOME:ET · 팀 로컬에선 됐는데 · 월세 시세는 국토부 실거래가, 통학 백분위는 2010년 대학생 통학시간 설문(인크루트), 관리비·생활비는 가정값이에요. ·{" "}
-      <a href="/privacy" className="underline-offset-2 hover:underline">
+      {/* 가운뎃점으로 잇지 않고 덩어리마다 간격으로 나눔 (display 클래스는 className 쪽에서 hidden을 쓰므로 인라인 유지) */}
+      <span className="mr-4 inline-block">HOME:ET, 팀 로컬에선 됐는데</span>
+      <span className="mr-4 inline-block">
+        월세 시세는 국토부 실거래가, 통학 백분위는 2010년 대학생 통학시간 설문(인크루트), 관리비·생활비는 가정값이에요.
+      </span>
+      <a href="/privacy" className="inline-block underline-offset-2 hover:underline">
         개인정보처리방침
       </a>
     </footer>

@@ -38,7 +38,7 @@ export function RentScreen({
       <PageHeader title="어디서, 얼마까지 내도 될까?" sub="리포트와 같은 기준으로, 내 가치관에서 자취가 손해가 되지 않는 월세 상한(보증금 이자를 더한 환산 월세)을 동네마다 계산했어요." />
 
       {/* 모바일: 지역 고르기 → 월세 상한 → 지도 순. 데스크톱: 왼쪽 지역·지도, 오른쪽 상한 */}
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
         <Card className="lg:col-start-1 lg:row-start-1">
           <CardTitle meta={`${m.school.name} 주변`}>자취 지역</CardTitle>
           <div className="mt-4">
@@ -87,7 +87,10 @@ export function RentScreen({
             <div className="mt-3">
               <BigNumber value={m.capText} unit={m.hasCap ? "/ 월 이하" : undefined} tone="primary" size="lg" />
             </div>
-            <Callout className="mt-4">{m.message}</Callout>
+            <Callout className="mt-4">
+              {m.message.text}
+              <span className="block">{m.message.score}</span>
+            </Callout>
             {m.hasCap && (
               <div className="mt-4">
                 <StatList rows={m.breakdown} />
@@ -149,7 +152,7 @@ function RegionMap({
         >
           <AdvancedMarker position={{ lat: school.lat, lng: school.lng }} title={school.name}>
             {/* Google 핀은 CSS 변수를 못 읽어서 globals.css의 accent-strong / accent / on-accent 토큰 값을 그대로 씀 */}
-            <Pin background="#e8894d" borderColor="#a6420a" glyphColor="#2a1405" />
+            <Pin background="#d4691f" borderColor="#b44d0e" glyphColor="#2a1405" />
           </AdvancedMarker>
           {regions.map((rg) => (
             <AdvancedMarker key={rg.id} position={{ lat: rg.lat, lng: rg.lng }} title={`${rg.name} 선택 · 환산 월세 중앙값 ${Math.round((rg.convRent ?? rg.rentMedian) / 10_000)}만 원 · ${passed[rg.id] ? "추천" : "상한 초과"}`} onClick={() => onPick(rg)}>

@@ -34,7 +34,13 @@ export function Meter({
   const pct = Math.max(0, Math.min(100, value));
   return (
     <div className={cx(styles.meter.track, styles.meter.size[size])} aria-hidden>
-      <div className={cx("h-full rounded-full transition-all", styles.meter.fill[tone])} style={{ width: `${Math.max(2, pct)}%` }} />
+      {/* 너비 대신 transform: 막대 전체를 왼쪽으로 밀어 넣어 비율만큼 보이게 (모서리 둥글기 유지) */}
+      <div className="h-full overflow-hidden rounded-full">
+        <div
+          className={cx("h-full rounded-full transition-transform duration-300 motion-reduce:transition-none", styles.meter.fill[tone])}
+          style={{ transform: `translateX(${Math.max(2, pct) - 100}%)` }}
+        />
+      </div>
       {marker !== undefined && <div className={styles.meter.marker} style={{ left: `${Math.max(0, Math.min(100, marker))}%` }} />}
     </div>
   );
@@ -66,8 +72,8 @@ export function ColumnBars({
           <b className="mb-2 text-sm tabular-nums">{it.value}</b>
           <div className="flex h-40 w-14 items-end overflow-hidden rounded-xl bg-track sm:h-48 sm:w-16">
             <div
-              className={cx("w-full rounded-xl transition-[height] duration-300", styles.meter.fill[it.tone ?? "primary"])}
-              style={{ height: `${Math.max(3, Math.min(100, it.pct))}%` }}
+              className={cx("h-full w-full rounded-xl transition-transform duration-300 motion-reduce:transition-none", styles.meter.fill[it.tone ?? "primary"])}
+              style={{ transform: `translateY(${100 - Math.max(3, Math.min(100, it.pct))}%)` }}
             />
           </div>
           <span className="mt-2.5 text-center text-xs leading-snug text-fg-sub">{it.label}</span>

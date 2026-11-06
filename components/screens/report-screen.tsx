@@ -7,7 +7,7 @@ import { reportModel } from "@/lib/view-models";
 import { cx } from "@/components/ui/styles";
 import {
   ActionBar, Badge, BigNumber, Button, Card, CardTitle, Dialog, Em, ColumnBars, FinePrint, InfoTip,
-  Meter, NumberInput, Panel, ScaleLabels, SectionLabel, Slider, StatList, useIsDesktop,
+  Meter, NumberInput, ScaleLabels, SectionLabel, Slider, StatList, useIsDesktop,
 } from "@/components/ui";
 import { SaveButtons, SaveStatus } from "@/components/reports/report-ui";
 
@@ -68,7 +68,8 @@ export function ReportScreen({
       {/* 1행: 자취지수 | 1시간 가격 비교 (반반) */}
       <div className="grid gap-5 lg:grid-cols-2">
         <div ref={scoreRef}>
-          <Card className="h-full">
+          {/* 이 화면의 주인공: 다른 카드보다 한 단계 진한 톤 */}
+          <Card tone="highlight" className="h-full">
             <CardTitle aside={<Badge tone={tone}>{m.verdict}</Badge>}>{m.title}</CardTitle>
             <div ref={numberRef} className="mt-4">
               <BigNumber value={m.index} unit="/ 100" />
@@ -78,10 +79,32 @@ export function ReportScreen({
               <ScaleLabels items={["통학 유리", "자취 유리"]} />
             </div>
             <div className="mt-5">
-              <SectionLabel>동네 커트라인 · {m.passText}</SectionLabel>
-              <div className="mt-2">
-                <StatList rows={m.cutLines} />
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                <SectionLabel>동네 커트라인</SectionLabel>
+                <span className="text-xs text-fg-muted">{m.passText}</span>
               </div>
+              <table className="mt-2 w-full text-sm tabular-nums">
+                <thead className="text-xs text-fg-muted">
+                  <tr>
+                    <th className="py-1 text-left font-medium">동네</th>
+                    <th className="py-1 text-right font-medium">환산 월세</th>
+                    <th className="py-1 text-right font-medium">커트라인</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {m.cutRows.map((r) => (
+                    <tr key={r.id} className={cx("border-t border-border", r.ok ? "text-fg" : "text-fg-muted")}>
+                      <td className="py-1.5">
+                        <span aria-hidden className={cx("mr-1.5", r.ok && "text-primary")}>{r.ok ? "✓" : "✗"}</span>
+                        {r.name}
+                        <span className="sr-only">{r.ok ? ", 통과" : ", 미달"}</span>
+                      </td>
+                      <td className="py-1.5 text-right">{r.rent}</td>
+                      <td className="py-1.5 text-right font-semibold">{r.cut}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Card>
         </div>
@@ -92,14 +115,14 @@ export function ReportScreen({
               <p className="text-lg font-bold leading-snug sm:text-xl">
                 {m.recommended ? (
                   <>
-                    <span className="block">한 달에 통학 <Em>{m.summary.hours}</Em>이 돌아와요.</span>
+                    <span className="block">한 달에 통학 {m.summary.hours}이 돌아와요.</span>
                     <span className="block">
-                      내 기준으로는 시간당 <Em>{m.summary.perHour}</Em>, 매달 <Em>{m.summary.perMonth}</Em>어치 이득이에요.
+                      내 기준으로는 시간당 {m.summary.perHour}, 매달 <Em>{m.summary.perMonth}</Em>어치 이득이에요.
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="block">1시간마다 <Em tone="accent">{m.summary.perHour}</Em>씩 비싸게 사는 거예요.</span>
+                    <span className="block">1시간마다 {m.summary.perHour}씩 비싸게 사는 거예요.</span>
                     <span className="block">
                       한 달이면 약 <Em tone="accent">{m.summary.perMonth}</Em>을 더 내는 셈이에요.
                     </span>
@@ -134,7 +157,8 @@ export function ReportScreen({
                 <span className="block space-y-1.5">
                   {m.adjust.map((a) => (
                     <span key={a.key} className="block">
-                      <b className="text-fg">{a.label}</b> · {a.hint}
+                      <b className="block text-fg">{a.label}</b>
+                      {a.hint}
                     </span>
                   ))}
                 </span>
@@ -178,7 +202,8 @@ export function ReportScreen({
                 <span className="block space-y-1.5">
                   {ASSUMPTIONS.map((a) => (
                     <span key={a.key} className="block">
-                      <b className="text-fg">{a.label}</b> · {a.hint}
+                      <b className="block text-fg">{a.label}</b>
+                      {a.hint}
                     </span>
                   ))}
                 </span>
@@ -268,10 +293,17 @@ const ASSUMPTIONS: { label: string; hint: string; key: keyof LivingCosts; step: 
 
 function Assumptions({ costs, onChange }: { costs: LivingCosts; onChange: (patch: Partial<LivingCosts>) => void }) {
   return (
-    <div className="mt-5 grid flex-1 auto-rows-fr grid-cols-2 gap-3">
-      {ASSUMPTIONS.map((f) => (
-        // 칸이 늘어나도 이름은 위, 입력칸은 아래에 붙음
-        <Panel key={f.key} className="flex min-w-0 flex-col justify-between gap-3">
+    // 칸 사이만 얇은 선(카드 안에 또 카드를 두지 않음). 칸이 늘어나도 이름은 위, 입력칸은 아래
+    <div className="mt-5 grid flex-1 auto-rows-fr grid-cols-2">
+      {ASSUMPTIONS.map((f, i) => (
+        <div
+          key={f.key}
+          className={cx(
+            "flex min-w-0 flex-col justify-between gap-3 py-4",
+            i % 2 === 0 ? "border-r border-border pr-4" : "pl-4",
+            i < 2 && "border-b border-border",
+          )}
+        >
           <label htmlFor={`as-${f.key}`} className="text-sm font-semibold text-fg">
             {f.label}
           </label>
@@ -283,7 +315,7 @@ function Assumptions({ costs, onChange }: { costs: LivingCosts; onChange: (patch
             value={costs[f.key]}
             onChange={(v) => onChange({ [f.key]: v })}
           />
-        </Panel>
+        </div>
       ))}
     </div>
   );

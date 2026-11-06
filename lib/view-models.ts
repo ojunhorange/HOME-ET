@@ -80,12 +80,10 @@ export function reportModel(state: AppState, name: string | null) {
     costs: costLines(best, bestRegion),
     nextLabel,
     /** 동네 점수(커트라인): 내 자취지수가 이 점수 이상이면 그 동네 추천 */
-    cutLines: [
-      ...[...j.rows].sort((a, b) => a.v.cut - b.v.cut).map(({ region, v }) => ({
-        label: `${v.ok ? "✓" : "✗"} ${region.name} · 환산 월세 ${man(v.convRent, 0)}`,
-        value: pt(v.cut),
-      })),
-    ] satisfies Line[],
+    /** 동네 커트라인 표 (커트라인 낮은 순): 동네 | 환산 월세 | 커트라인 */
+    cutRows: [...j.rows]
+      .sort((a, b) => a.v.cut - b.v.cut)
+      .map(({ region, v }) => ({ id: region.id, ok: v.ok, name: region.name, rent: man(v.convRent, 0), cut: v.cut.toFixed(1) })),
     adjust: WEIGHT_LABELS.map(({ key, label, hint }) => ({
       key,
       label,
@@ -103,16 +101,19 @@ export function reportModel(state: AppState, name: string | null) {
 }
 
 // ── ③ 월세 추천 ─────────────────────────────
+/** 상한 카드 안내: 시세와 상한 비교(text) + 다음 줄에 자취지수와 커트라인 비교(score) */
 function rentMessage(v: Verdict, region: Region) {
-  const median = man(v.convRent, 0);
+  const median = `${region.name} 환산 월세 중앙값(${man(v.convRent, 0)})`;
   const score = `내 자취지수 ${pt(v.index)} ${v.ok ? "≥" : "<"} 동네 점수 ${pt(v.cut)}`;
-  if (v.rentCap <= 0)
-    return `지금 가치관 기준으로는 ${region.name}에서 어떤 월세를 내도 통학보다 손해예요(${score}). 리포트에서 가치관을 다시 살펴보거나 통학을 이어가는 것도 방법이에요.`;
-  if (v.rentCap >= v.convRent * 1.5)
-    return `${region.name} 환산 월세 중앙값(${median})보다 상한이 훨씬 높아요(${score}). 시세 안에서 넓게 고를 수 있어요.`;
-  if (v.ok)
-    return `${region.name} 환산 월세 중앙값(${median})이 상한 안에 들어와요(${score}). 이 지역에서 고르면 통학보다 손해가 아니에요.`;
-  return `${region.name} 환산 월세 중앙값(${median})이 상한보다 높아요(${score}). 중앙값보다 싼 방을 찾거나 다른 지역도 같이 비교해 보세요.`;
+  const text =
+    v.rentCap <= 0
+      ? `${region.name}에서는 어떤 월세를 내도 통학보다 손해예요`
+      : v.rentCap >= v.convRent * 1.5
+        ? `${median}보다 상한이 훨씬 높아요`
+        : v.ok
+          ? `${median}이 상한 안에 들어와요`
+          : `${median}이 상한보다 높아요`;
+  return { text, score };
 }
 
 function mapUrl(school: School, region: Region) {

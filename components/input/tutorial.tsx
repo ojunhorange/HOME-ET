@@ -32,12 +32,12 @@ const SLIDES: { title: string; body: string; art: ReactNode }[] = [
   },
   {
     title: "자취지수로 비교해요",
-    body: "통학으로 잃는 시간과 체력을 또래 대학생 통학 순위로 0~100점에 매겨요. 학교 주변 동네의 커트라인보다 높으면 그 동네에서는 자취가 이득이에요.",
+    body: "통학으로 잃는 시간과 체력을 또래 대학생 통학 순위로 0~100점에 매겨요. 시간·체력·돈 중 무엇을 중요하게 여기는지에 따라 점수가 조금씩 움직여요.",
     art: <ScoreArt />,
   },
   {
-    title: "손해 안 보는 월세를 알려 드려요",
-    body: "자취지수가 50이 되는 월세를 거꾸로 계산해 학교 주변 동네 시세와 비교해 드려요.",
+    title: "동네 커트라인과 비교해요",
+    body: "학교 주변 동네마다 월세와 생활비를 \"통학 몇 분어치\"로 바꿔 커트라인 점수를 매겨요. 내 자취지수가 커트라인 이상인 동네를 추천해 드려요.",
     art: <RentArt />,
   },
   {
@@ -168,23 +168,29 @@ function ScoreArt() {
 }
 
 function RentArt() {
+  // 리포트의 동네 커트라인 표를 줄인 미리보기 (커트라인 낮은 순)
   const rows = [
-    { name: "안암동", rent: 52, ok: true },
-    { name: "제기동", rent: 48, ok: true },
-    { name: "보문동", rent: 63, ok: false },
+    { name: "청량리동", cut: 59.6, ok: true },
+    { name: "안암동", cut: 66.6, ok: true },
+    { name: "동선동", cut: 74.2, ok: false },
   ];
   return (
     <div>
-      <p className="text-xs text-fg-sub">손해 안 보는 월세 상한</p>
-      <p className="mt-0.5 text-2xl font-bold tracking-tight text-fg">
-        58<span className="ml-0.5 text-sm font-semibold text-fg-muted">만 원</span>
+      <p className="flex items-baseline justify-between text-xs text-fg-sub">
+        <span>동네 커트라인</span>
+        <span>
+          내 자취지수 <b className="text-sm tabular-nums text-primary">68</b>
+        </span>
       </p>
       <ul className="mt-2.5 space-y-1.5">
         {rows.map((r) => (
           <li key={r.name} className="flex items-center justify-between rounded-control bg-surface/70 px-3 py-1.5 text-xs">
-            <span className="font-semibold text-fg">{r.name}</span>
+            <span className={cx("font-semibold", r.ok ? "text-fg" : "text-fg-muted")}>
+              <span aria-hidden className={cx("mr-1.5", r.ok && "text-primary")}>{r.ok ? "✓" : "✗"}</span>
+              {r.name}
+            </span>
             <span className="tabular-nums text-fg-sub">
-              시세 {r.rent}만 원 <b className={r.ok ? "text-primary" : "text-accent"}>{r.ok ? "추천" : "초과"}</b>
+              {r.cut}점 <b className={r.ok ? "text-primary" : "text-accent"}>{r.ok ? "추천" : "미달"}</b>
             </span>
           </li>
         ))}

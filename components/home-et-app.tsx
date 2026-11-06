@@ -139,9 +139,13 @@ export function HomeEtApp() {
       />
       <main
         className={cx(
-          "mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 md:py-12",
+          "mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6",
+          // 같은 속성 클래스 둘은 CSS 순서로 이겨서 하나만 붙임. 입력(시작·질문) 화면은 스크롤 없이 한 화면에 들어가게 좁게
+          onInput ? "md:py-3" : "md:py-12",
           // 남은 높이를 질문 화면에 넘겨서 화면 높이를 넘지 않게
           onInput && "max-md:flex max-md:flex-col max-md:p-0",
+          // 데스크톱 시작 화면: 카드를 위아래 가운데에 두고 여백을 줄여 스크롤 없이 한 화면에
+          onInput && !started && "md:flex md:flex-col",
           // 계약 D-day는 데스크톱에서 스크롤 없이 한 화면에 들어가게 위아래 여백을 줄임
           state.step === 4 && "lg:pt-6 lg:pb-3",
         )}
@@ -174,8 +178,18 @@ export function HomeEtApp() {
         {state.step === 3 && ready && <RentScreen state={state} update={update} name={name} onBack={() => go(2)} onNext={() => go(4)} />}
         {state.step === 4 && ready && today && <DdayScreen state={state} update={update} today={today} onBack={() => go(3)} />}
       </main>
-      {/* 계약 D-day는 데스크톱에서 한 화면에 들어가게 푸터 아래 여백을 줄임. 맞춤 월세 추천은 푸터 없이 한 화면에 */}
-      <Footer className={cx(onInput && "max-md:hidden", state.step === 3 && "hidden", state.step === 4 && "lg:pb-4")} />
+      {/* 계약 D-day는 데스크톱에서 한 화면에 들어가게 푸터 아래 여백을 줄임. 맞춤 월세 추천은 푸터 없이 한 화면에.
+          입력 화면(데스크톱)은 출처 설명 없이 팀 이름·개인정보처리방침 링크만, 오른쪽 아래 구석에 띄워서 높이를 차지하지 않게
+          (OAuth 심사가 첫 화면의 방침 링크를 봄) */}
+      <Footer
+        compact={onInput}
+        className={cx(
+          // 시작 화면만 오른쪽 아래 구석에. 질문 화면은 숨김 (구석에 두면 '다음' 버튼과 겹치고, 자리에 두면 스크롤이 생김)
+          onInput && (started ? "hidden" : "max-md:hidden md:fixed md:right-0 md:bottom-0 md:w-auto md:pb-3"),
+          state.step === 3 && "hidden",
+          state.step === 4 && "lg:pb-4",
+        )}
+      />
       <MyReportsDialog />
       {/* 오른쪽 아래 도우미 (등본 확인·특약 물어보기). 계약 D-day 단계에서만 */}
       {ready && state.step === 4 && <Assistant deposit={state.leaseDeposit} />}

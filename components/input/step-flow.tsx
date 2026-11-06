@@ -120,18 +120,18 @@ export function StepFlow({ state, update, onSubmit, loading, started, onStart: m
 
       {/* 시작 화면. 모바일: 하단 고정 버튼 바, 데스크톱: 가운데 유리 카드 안에 버튼을 위아래로 */}
       {!started && (
-        <div className="flex flex-1 flex-col px-5 pt-8 md:mx-auto md:w-full md:max-w-xl md:flex-none md:rounded-sheet md:border md:border-glass-border md:bg-glass md:p-10 md:shadow-glass md:backdrop-glass">
+        <div className="flex flex-1 flex-col px-5 pt-8 md:m-auto md:w-full md:max-w-xl md:flex-none md:rounded-sheet md:border md:border-glass-border md:bg-glass md:p-7 md:shadow-glass md:backdrop-glass">
           <SideIntro>
-            <div className="mt-6">
+            <div className="mt-6 md:mt-5">
               <IntroFeatures />
             </div>
           </SideIntro>
           {/* 소개 맨 아래 (모바일: 하단 고정 바 바로 위, 데스크톱: 시작 버튼들 위) */}
-          <Button variant="secondary" size="lg" block onClick={openTutorial} className="mt-6">
+          <Button variant="secondary" size="lg" block onClick={openTutorial} className="mt-6 md:mt-5">
             튜토리얼 보기
           </Button>
           {/* 저장 기능이 켜져 있으면 '기존 리포트 보기'(위) + '검사 시작'(아래)을 전체 너비로 쌓음 */}
-          <ActionBar desktopClassName="md:mt-6 md:flex-col md:border-0 md:bg-transparent md:p-0" stacked={reports.enabled}>
+          <ActionBar desktopClassName="md:mt-5 md:flex-col md:border-0 md:bg-transparent md:p-0" stacked={reports.enabled}>
             <OpenReportsButton />
             {/* 로그인 상태 확인 중엔 잠깐 잠금 (로그인했는데 '로그인할까요' 모달이 뜨지 않게) */}
             <Button size="lg" block onClick={onStart} disabled={reports.authLoading}>
@@ -166,19 +166,20 @@ export function StepFlow({ state, update, onSubmit, loading, started, onStart: m
       {/* 모바일: 배경 위에 바로 (고정 바만 유리), 데스크톱: 큰 유리 시트. 모바일엔 backdrop-filter를 주지 않음 → fixed 하단 바의 기준이 바뀌지 않게 */}
       <section
         className={cx(
-          "flex flex-1 flex-col overflow-x-clip md:min-h-[600px] md:rounded-sheet md:border md:border-glass-border md:bg-glass md:shadow-glass md:backdrop-glass",
+          // 데스크톱: 질문마다 시트 크기가 같게 화면 높이(헤더·위아래 여백 제외)에 고정. 넘치는 질문은 시트 안에서만 스크롤
+          "flex flex-1 flex-col overflow-x-clip md:h-[calc(100dvh-var(--header-h,61px)-1.5rem)] md:min-h-[560px] md:rounded-sheet md:border md:border-glass-border md:bg-glass md:shadow-glass md:backdrop-glass",
           !started && "hidden!", // 기본 flex보다 우선하도록 important
         )}
       >
         {/* 상단: 진행률 막대만. 확인 화면에서 항목을 고치러 온 땐 숨김 (막대가 뒤로 가 보여서 헷갈림) */}
-        <div className="sticky top-[var(--header-h,0px)] z-10 flex h-12 items-center px-5 bg-glass-bar backdrop-glass md:bg-transparent md:backdrop-filter-none md:static md:h-auto md:rounded-t-sheet md:px-10 md:pt-8">
+        <div className="sticky top-[var(--header-h,0px)] z-10 flex h-12 items-center px-5 bg-glass-bar backdrop-glass md:bg-transparent md:backdrop-filter-none md:static md:h-auto md:rounded-t-sheet md:px-10 md:pt-6">
           <ProgressBar value={progress} className={cx("flex-1", fromReview && "invisible")} />
         </div>
 
         <div
           key={idx}
           className={cx(
-            "flex-1 px-5 md:px-10 md:pt-8 md:pb-10",
+            "flex-1 px-5 md:min-h-0 md:overflow-y-auto md:px-10 md:pt-6 md:pb-6",
             dir > 0 ? "motion-safe:animate-step-next" : "motion-safe:animate-step-prev",
           )}
         >
@@ -204,7 +205,7 @@ export function StepFlow({ state, update, onSubmit, loading, started, onStart: m
                 <h1 className="mt-1.5 whitespace-pre-line text-[26px] font-bold leading-snug tracking-tight md:text-[30px]">{q.title}</h1>
                 {q.sub && <p className="mt-2 text-[15px] leading-relaxed text-fg-sub">{q.sub}</p>}
               </div>
-              <div className="pt-2 md:pt-8">
+              <div className="pt-2 md:pt-5">
                 <HeroEditor
                   q={q}
                   state={state}
@@ -219,7 +220,7 @@ export function StepFlow({ state, update, onSubmit, loading, started, onStart: m
           )}
         </div>
 
-        <ActionBar keyboardAware desktopClassName="md:items-center md:justify-between md:rounded-b-sheet md:border-primary/8 md:bg-transparent md:px-10 md:py-5">
+        <ActionBar keyboardAware desktopClassName="md:items-center md:justify-between md:rounded-b-sheet md:border-primary/8 md:bg-transparent md:px-10 md:py-4">
           {/* 모바일: 왼쪽에 좁게 (첫 질문에선 숨겨서 '다음'이 꽉 차게) */}
           <Button
             variant={desktop ? "ghost" : "secondary"}

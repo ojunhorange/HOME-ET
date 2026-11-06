@@ -69,7 +69,7 @@ export const styles = {
 
   /** 크게 누르는 선택지 (목록·격자) */
   option: {
-    base: `flex min-h-14 w-full items-center gap-3 rounded-panel border px-4 py-3.5 text-left transition active:scale-[0.99] ${focusRing}`,
+    base: `flex min-h-14 w-full items-center gap-3 rounded-panel border px-4 py-3.5 md:py-3 text-left transition active:scale-[0.99] ${focusRing}`,
     idle: "border-border bg-surface/60 hover:border-primary/25 hover:bg-surface/85",
     // 레퍼런스는 2px 테두리 → 레이아웃이 밀리지 않게 1px 테두리 + 안쪽 1px 링으로
     selected: "border-primary bg-primary-soft text-primary ring-1 ring-inset ring-primary",

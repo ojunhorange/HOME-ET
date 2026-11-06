@@ -355,7 +355,7 @@ export function OptionList<T extends string | number>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={layout === "grid" ? "grid grid-cols-2 gap-2.5 md:grid-cols-4" : "space-y-2.5"}
+      className={layout === "grid" ? "grid grid-cols-2 gap-2.5 md:grid-cols-4" : "space-y-2.5 md:space-y-2"}
     >
       {options.map((o, i) => {
         const selected = o.value === value;

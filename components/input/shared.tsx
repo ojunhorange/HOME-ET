@@ -22,7 +22,7 @@ export const allValid = (s: AppState) => QUESTIONS.every((q) => q.valid(s));
 export function SideIntro({ children }: { children?: ReactNode }) {
   return (
     <div>
-      <Eyebrow>서울 대학생을 위한 첫 자취 판단 도우미</Eyebrow>
+      <Eyebrow size="md">서울 대학생을 위한 첫 자취 판단 도우미</Eyebrow>
       <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight lg:text-4xl">
         첫 자취,
         <br />
@@ -45,9 +45,9 @@ const FEATURES = [
 /** 이렇게 알려 드려요: 결과 화면 3개 미리보기 (모바일 시작 화면) */
 export function IntroFeatures() {
   return (
-    <ol className="space-y-3" aria-label="검사하면 알 수 있는 것">
+    <ol className="space-y-3 md:space-y-2" aria-label="검사하면 알 수 있는 것">
       {FEATURES.map((f, i) => (
-        <li key={f.title} className="flex gap-3.5 rounded-panel bg-surface-muted p-4">
+        <li key={f.title} className="flex gap-3.5 rounded-panel bg-surface-muted p-4 md:px-4 md:py-3">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary-soft text-xs font-bold text-primary">{i + 1}</span>
           <span>
             <span className="block text-[15px] font-bold">{f.title}</span>

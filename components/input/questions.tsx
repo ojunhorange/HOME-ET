@@ -31,6 +31,21 @@ export interface Question {
 
 const always = () => true;
 
+/** 경로 요약 줄이기: "지하철 6호선 → 버스 273" → "6호선 → 273번" (수단 이름은 빼고 노선만) */
+function shortRoute(summary: string) {
+  return summary
+    .split(" → ")
+    .map((part) => {
+      const m = part.match(/^(지하철|전철|버스|시외버스|마을버스|기차|트램)\s*(.*)$/);
+      if (!m || !m[2]) return part; // 노선 이름이 없으면 수단 이름이라도 남김
+      const [, vehicle, line] = m;
+      // 지하철은 숫자만 오면 n호선 (6호선·신분당선처럼 이름이 있으면 그대로), 버스는 n번 (273번, 750B번, 강남01번)
+      if (vehicle === "지하철" || vehicle === "전철") return /^\d+$/.test(line) ? `${line}호선` : line;
+      return vehicle.endsWith("버스") ? `${line}번` : line;
+    })
+    .join(" → ");
+}
+
 export const QUESTIONS: Question[] = [
   {
     id: "school", group: "학교 · 집", label: "학교", kind: "choice",
@@ -46,7 +61,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "route", group: "통학 경로", label: "경로", kind: "choice",
     title: "평소 이렇게\n통학하나요?",
-    display: (s) => (s.routeKey ? s.routeSummary || "직접 입력" : "입력 전"),
+    display: (s) => (s.routeKey ? shortRoute(s.routeSummary) || "직접 입력" : "입력 전"),
     // 경로 후보 중 하나나 '직접 입력할게요'를 골라야 통과 (못 찾아도 '직접 입력' 선택지는 항상 있음).
     // 본가·학교를 바꾸면 routeKey가 초기화돼서 다시 골라야 검사 시작이 눌림
     valid: (s) => s.routeKey !== null,

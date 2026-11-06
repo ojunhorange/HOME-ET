@@ -106,14 +106,16 @@ export function Logo() {
   );
 }
 
-export function Footer({ className }: { className?: string }) {
+export function Footer({ className, compact }: { className?: string; compact?: boolean }) {
   return (
     <footer className={cx("mx-auto w-full max-w-6xl px-4 pb-8 text-xs text-fg-muted sm:px-6", className)}>
       {/* 가운뎃점으로 잇지 않고 덩어리마다 간격으로 나눔 (display 클래스는 className 쪽에서 hidden을 쓰므로 인라인 유지) */}
       <span className="mr-4 inline-block">HOME:ET, 팀 로컬에선 됐는데</span>
-      <span className="mr-4 inline-block">
-        월세 시세는 국토부 실거래가, 통학 백분위는 2010년 대학생 통학시간 설문(인크루트), 관리비·생활비는 가정값이에요.
-      </span>
+      {!compact && (
+        <span className="mr-4 inline-block">
+          월세 시세는 국토부 실거래가, 통학 백분위는 2010년 대학생 통학시간 설문(인크루트), 관리비·생활비는 가정값이에요.
+        </span>
+      )}
       <a href="/privacy" className="inline-block underline-offset-2 hover:underline">
         개인정보처리방침
       </a>

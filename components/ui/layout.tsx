@@ -45,8 +45,8 @@ export function PageHeader({ title, sub }: { title: string; sub: string }) {
   );
 }
 
-export function Eyebrow({ tone = "accent", children }: { tone?: "accent" | "primary"; children: ReactNode }) {
-  return <p className={cx("text-sm font-semibold", styles.emphasis[tone])}>{children}</p>;
+export function Eyebrow({ tone = "accent", size = "sm", children }: { tone?: "accent" | "primary"; size?: "sm" | "md"; children: ReactNode }) {
+  return <p className={cx(size === "md" ? "text-base" : "text-sm", "font-semibold", styles.emphasis[tone])}>{children}</p>;
 }
 
 export function SectionLabel({ tone, children }: { tone?: "primary" | "accent"; children: ReactNode }) {

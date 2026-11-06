@@ -7,7 +7,7 @@ import { MAPS_KEY } from "@/components/providers";
 import { rentModel } from "@/lib/view-models";
 import {
   ActionBar, BigNumber, Button, Callout, Card, CardTitle, Chip, ChipGroup, Field, FinePrint,
-  InlineStats, NumberInput, PageHeader, Panel, StatList, TextInput,
+  InlineStats, MapPill, NumberInput, PageHeader, Panel, StatList, TextInput,
 } from "@/components/ui";
 
 export function RentScreen({
@@ -44,7 +44,7 @@ export function RentScreen({
           <div className="mt-4">
             <ChipGroup>
               {m.regions.map((rg) => (
-                <Chip key={rg.id} selected={state.regionId === rg.id} onClick={() => update({ regionId: rg.id, leaseRent: rg.rentMedian })}>
+                <Chip key={rg.id} verdict={m.passed[rg.id] ? "pass" : "fail"} selected={state.regionId === rg.id} onClick={() => update({ regionId: rg.id, leaseRent: rg.rentMedian })}>
                   {rg.name}
                 </Chip>
               ))}
@@ -87,10 +87,7 @@ export function RentScreen({
             <div className="mt-3">
               <BigNumber value={m.capText} unit={m.hasCap ? "/ 월 이하" : undefined} tone="primary" size="lg" />
             </div>
-            <Callout className="mt-4">
-              {m.message.text}
-              <span className="block">{m.message.score}</span>
-            </Callout>
+            <Callout className="mt-4">{m.message}</Callout>
             {m.hasCap && (
               <div className="mt-4">
                 <StatList rows={m.breakdown} />
@@ -128,7 +125,7 @@ export function RentScreen({
 
 /**
  * Google 지도: 학교는 주황 핀, 자취 후보 동네는 이름이 적힌 알약 마커.
- * 알약 색 규칙은 위쪽 지역 칩과 같음(선택 = primary). 알약을 눌러도 칩과 같은 선택 처리를 함.
+ * 알약 색 규칙은 위쪽 지역 칩과 같음(추천 = 네이비, 비추천 = 주황, 선택 = 진한 면). 알약을 눌러도 칩과 같은 선택 처리를 함.
  * AdvancedMarker는 Map ID가 있어야 보임 (지금은 Google 데모 ID)
  */
 function RegionMap({
@@ -156,19 +153,15 @@ function RegionMap({
           </AdvancedMarker>
           {regions.map((rg) => (
             <AdvancedMarker key={rg.id} position={{ lat: rg.lat, lng: rg.lng }} title={`${rg.name} 선택 · 환산 월세 중앙값 ${Math.round((rg.convRent ?? rg.rentMedian) / 10_000)}만 원 · ${passed[rg.id] ? "추천" : "상한 초과"}`} onClick={() => onPick(rg)}>
-              <span
-                className={`block rounded-full px-3 py-1.5 text-xs font-bold shadow-md ${
-                  rg.id === selectedId ? "bg-primary text-on-primary" : "bg-surface text-fg"
-                }`}
-              >
+              <MapPill verdict={passed[rg.id] ? "pass" : "fail"} selected={rg.id === selectedId}>
                 {passed[rg.id] && "✓ "}
                 {rg.name} <span className="font-normal opacity-80">{Math.round((rg.convRent ?? rg.rentMedian) / 10_000)}만</span>
-              </span>
+              </MapPill>
             </AdvancedMarker>
           ))}
         </GoogleMap>
       </div>
-      <FinePrint className="mt-1.5 text-right text-[11px]">지도 © Google · 숫자는 환산 월세 중앙값 · ✓ = 내 상한 안 · 동네 이름을 눌러도 고를 수 있어요</FinePrint>
+      <FinePrint className="mt-1.5 text-right text-[11px]">지도 © Google</FinePrint>
     </div>
   );
 }

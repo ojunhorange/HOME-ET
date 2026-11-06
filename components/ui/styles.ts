@@ -45,6 +45,12 @@ export const styles = {
     selected: "bg-primary text-on-primary",
     idle: "border border-primary/14 bg-surface/65 text-fg hover:bg-surface/90",
     dashed: "border-dashed",
+    /** 판정 색: 추천 = 네이비, 비추천 = 주황. 선택되면 진한 면, 아니면 옅은 면 (지도 알약도 같은 값) */
+    verdict: {
+      // map = 지도 위 알약: 지도 타일이 비치지 않게 불투명 흰 면 + 판정 색 글자·테두리
+      pass: { selected: "bg-primary text-on-primary", idle: "border border-primary/30 bg-primary-soft text-primary hover:bg-primary/12", map: "border border-primary/40 bg-surface text-primary" },
+      fail: { selected: "bg-accent-strong text-on-accent", idle: "border border-accent/30 bg-accent-soft text-accent hover:bg-accent-strong/20", map: "border border-accent/40 bg-surface text-accent" },
+    },
   },
 
   control: {

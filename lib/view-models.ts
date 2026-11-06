@@ -21,7 +21,6 @@ const LEVELS: Record<number, string> = {
   [-3]: "거의 신경 안 씀", [-2]: "덜 중요", [-1]: "조금 덜 중요", 0: "보통", 1: "조금 중요", 2: "중요", 3: "가장 중요",
 };
 export const levelText = (a: number) => LEVELS[a] ?? "보통";
-const pt = (v: number) => `${v.toFixed(1)}점`;
 
 export interface Line { label: string; value: string; total?: boolean }
 
@@ -104,16 +103,13 @@ export function reportModel(state: AppState, name: string | null) {
 /** 상한 카드 안내: 시세와 상한 비교(text) + 다음 줄에 자취지수와 커트라인 비교(score) */
 function rentMessage(v: Verdict, region: Region) {
   const median = `${region.name} 환산 월세 중앙값(${man(v.convRent, 0)})`;
-  const score = `내 자취지수 ${pt(v.index)} ${v.ok ? "≥" : "<"} 동네 점수 ${pt(v.cut)}`;
-  const text =
-    v.rentCap <= 0
+  return v.rentCap <= 0
       ? `${region.name}에서는 어떤 월세를 내도 통학보다 손해예요`
       : v.rentCap >= v.convRent * 1.5
         ? `${median}보다 상한이 훨씬 높아요`
         : v.ok
           ? `${median}이 상한 안에 들어와요`
           : `${median}이 상한보다 높아요`;
-  return { text, score };
 }
 
 function mapUrl(school: School, region: Region) {
@@ -129,14 +125,17 @@ export function rentModel(state: AppState, name: string | null) {
   const isCustom = region.id === "custom";
   const v = judgeRegion(state, region);
   const cap = man(Math.max(0, v.rentCap));
+  const judged = school.regions.map((rg) => ({ rg, v: judgeRegion(state, rg) }));
+  // 통과한 동네 먼저, 그 안에서 월세 상한 낮은 순. 못 넘은 동네는 뒤에 같은 순서로
+  judged.sort((a, b) => Number(b.v.ok) - Number(a.v.ok) || a.v.rentCap - b.v.rentCap);
 
   return {
     school,
     region,
     isCustom,
-    regions: school.regions,
+    regions: judged.map((j) => j.rg),
     /** 지도 알약: 동네별 통과 여부 */
-    passed: Object.fromEntries(school.regions.map((rg) => [rg.id, judgeRegion(state, rg).ok])),
+    passed: Object.fromEntries(judged.map((j) => [j.rg.id, j.v.ok])),
     title: name ? `${name} 님의 적정 월세 상한` : "나의 적정 월세 상한",
     capText: cap,
     hasCap: true,

@@ -51,18 +51,25 @@ export function LinkButton({ className, ...props }: ButtonHTMLAttributes<HTMLBut
 }
 
 export function Chip({
-  selected, dashed, onClick, children,
-}: { selected?: boolean; dashed?: boolean; onClick?: () => void; children: ReactNode }) {
+  selected, dashed, verdict, onClick, children,
+}: { selected?: boolean; dashed?: boolean; verdict?: keyof typeof styles.chip.verdict; onClick?: () => void; children: ReactNode }) {
+  const tone = verdict ? styles.chip.verdict[verdict] : { selected: styles.chip.selected, idle: styles.chip.idle };
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={cx(styles.chip.base, selected ? styles.chip.selected : styles.chip.idle, !selected && dashed && styles.chip.dashed)}
+      className={cx(styles.chip.base, selected ? tone.selected : tone.idle, !selected && dashed && styles.chip.dashed)}
     >
       {children}
     </button>
   );
+}
+
+/** 지도 위 동네 알약: Chip과 같은 판정 색, 크기만 작게 (클릭은 지도 마커가 받음) */
+export function MapPill({ verdict, selected, children }: { verdict: keyof typeof styles.chip.verdict; selected?: boolean; children: ReactNode }) {
+  const tone = styles.chip.verdict[verdict];
+  return <span className={cx("block rounded-full px-3 py-1.5 text-xs font-bold shadow-md", selected ? tone.selected : tone.map)}>{children}</span>;
 }
 
 export function ChipGroup({ children }: { children: ReactNode }) {
